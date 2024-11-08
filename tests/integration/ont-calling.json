@@ -13,5 +13,11 @@
             "id": "GM24385_ubam",
             "reads": "tests/data/GM24385_1_mitochondrial_reads.unaligned.bam"
         }
-    ]
+    ],
+    "LongReadVariantCalling.clair3Task.memory": "1GiB",
+    "LongReadVariantCalling.clair3Task.threads": 1,
+    "LongReadVariantCalling.minimap2Mapping.memory": "1GiB",
+    "LongReadVariantCalling.minimap2Mapping.cores": 1,
+    "LongReadVariantCalling.sequaliTask.threads": 1
+
   }
