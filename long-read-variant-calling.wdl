@@ -60,7 +60,8 @@ task BamToFastq {
     }
 
     command {
-        samtools reset -u ~{inputBam} | samtools fastq | bgzip -@ 2 -l 1 > ~{prefix}.fastq.gz
+        set -eu -o pipefail
+        samtools reset ~{inputBam} | samtools fastq - | bgzip -@ 2 -l 1 > ~{prefix}.fastq.gz
     }
     output {
         File fastq = "~{prefix}.fastq.gz"
