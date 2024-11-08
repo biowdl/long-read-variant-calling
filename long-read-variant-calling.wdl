@@ -83,7 +83,9 @@ workflow LongReadVariantCalling {
         Array[Sample] samples
         File referenceFasta 
         File referenceFastaFai
-        File? model
+        File? clair3model
+        String? clair3builtinmodel
+        String clair3platform
         String minimap2preset = "map-ont"
         String outputPrefix = "."
     }
@@ -104,12 +106,23 @@ workflow LongReadVariantCalling {
         call minimap2.Mapping as minimap2Mapping {
             input:
                 presetOption = minimap2preset,
-                outputPrefix = "~{outputPrefix}/bam",
+                outputPrefix = "~{outputPrefix}/bam/~{sample.id}",
                 referenceFile = referenceFasta,
                 queryFile = reads,
         }
 
-    
+        call clair3.Clair3 as Clair3 {
+            input: 
+                outputPrefix = "~{outputPrefix}/clair3/~{sample.id}",
+                bam = minimap2Mapping.bam 
+                bamIndex = minimap2Mapping.bamIndex 
+                referenceFasta = referenceFasta 
+                referenceFastaFai = referenceFastaFai
+                model = clair3model 
+                builtinModel = clair3builtinmodel 
+                platform = clair3platform 
+        }
+ 
     }
 
     output {
