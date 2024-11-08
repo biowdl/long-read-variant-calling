@@ -11,8 +11,12 @@
     - path: test-output/out/bam/GM24385_ubam.bam
     - path: test-output/out/bam/GM24385_ubam.bam.bai
     - path: test-output/out/clair3/GM24385_fastq.vcf.gz
+      contains:  # Verified with IGV. This is probably a true variant.
+        - "NC_012920.1	263	.	A	G"
     - path: test-output/out/clair3/GM24385_fastq.vcf.gz.tbi
     - path: test-output/out/clair3/GM24385_ubam.vcf.gz
+      contains:
+        - "NC_012920.1	263	.	A	G"
     - path: test-output/out/clair3/GM24385_ubam.vcf.gz.tbi
     - path: test-output/out/sequali/GM24385_1_mitochondrial_reads.fastq.gz.html
     - path: test-output/out/sequali/GM24385_1_mitochondrial_reads.unaligned.bam.html
