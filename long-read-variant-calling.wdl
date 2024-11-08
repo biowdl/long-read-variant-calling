@@ -20,11 +20,10 @@ version 1.0
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import tasks/sequali.wdl as sequali 
-import tasks/minimap2.wdl as minimap2 
-import tasks/clair3.wdl as clair3 
-import tasks/multiqc.wdl as multiqc 
-import tasks/samtools as samtools
+import "tasks/sequali.wdl" as sequali 
+import "tasks/minimap2.wdl" as minimap2 
+import "tasks/clair3.wdl" as clair3 
+import "tasks/multiqc.wdl" as multiqc 
 
 task fileIsFastx {
     input {
@@ -64,7 +63,7 @@ task BamToFastq {
         samtools reset -u ~{inputBam} | samtools fastq ~{inputBam} | bgzip -l 1 > ~{prefix}.fastq.gz
     }
     output {
-        fastq = "~{prefix}.fastq.gz"
+        File fastq = "~{prefix}.fastq.gz"
     }
     runtime {
         cpu: 2  # One for decompressing one for compressing
@@ -93,8 +92,8 @@ workflow LongReadVariantCalling {
     scatter (sample in samples) {
         call sequali.Sequali as sequaliTask {
             input: 
-                reads = sample.reads
-                outDir = outputPrefix + "/sequali/"
+                reads = sample.reads,
+                outDir = outputPrefix + "/sequali/",
         }
         call fileIsFastx {
             input:
@@ -119,27 +118,27 @@ workflow LongReadVariantCalling {
         call clair3.Clair3 as clair3Task {
             input: 
                 outputPrefix = "~{outputPrefix}/clair3/~{sample.id}",
-                bam = minimap2Mapping.bam 
-                bamIndex = minimap2Mapping.bamIndex 
-                referenceFasta = referenceFasta 
-                referenceFastaFai = referenceFastaFai
-                model = clair3model 
-                builtinModel = clair3builtinmodel 
-                platform = clair3platform 
+                bam = minimap2Mapping.bam,
+                bamIndex = minimap2Mapping.bamIndex,
+                referenceFasta = referenceFasta,
+                referenceFastaFai = referenceFastaFai,
+                model = clair3model,
+                builtinModel = clair3builtinmodel,
+                platform = clair3platform,
         }
     }
     call multiqc.MultiQC {
         input:
-            reports = sequaliTask.json
-            dataDir = False
+            reports = sequaliTask.json,
+            dataDir = false,
     }
 
     output {
         File multiqcReport = MultiQC.multiqcReport 
         Array[File] bamFiles = minimap2Mapping.bam 
         Array[File] bamIndexes = minimap2Mapping.bamIndex 
-        Array[File] vcfFiles = clair3task.vcf 
-        Array[File] vcfIndexes = clair3task.vcfIndex 
+        Array[File] vcfFiles = clair3Task.vcf 
+        Array[File] vcfIndexes = clair3Task.vcfIndex 
         Array[File] sequaliReports = sequaliTask.html
     }
 }
