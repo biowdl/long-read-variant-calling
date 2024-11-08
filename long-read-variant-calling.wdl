@@ -60,13 +60,13 @@ task BamToFastq {
     }
 
     command {
-        samtools reset -u ~{inputBam} | samtools fastq | bgzip -l 1 > ~{prefix}.fastq.gz
+        samtools reset -u ~{inputBam} | samtools fastq | bgzip -@ 2 -l 1 > ~{prefix}.fastq.gz
     }
     output {
         File fastq = "~{prefix}.fastq.gz"
     }
     runtime {
-        cpu: 2  # One for decompressing one for compressing
+        cpu: 4  # One for samtools reset, samtools fastq, and two for bgzip for optimal balance.
         memory: "2GiB"
         docker: dockerImage
         time_minutes: timeMinutes
