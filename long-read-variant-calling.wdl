@@ -69,6 +69,7 @@ task BamToFastq {
         cpu: 2  # One for decompressing one for compressing
         memory: "2GiB"
         docker: dockerImage
+        time_minutes: timeMinutes
     }
 
 }
@@ -82,7 +83,7 @@ workflow LongReadVariantCalling {
         Array[Sample] samples
         File referenceFasta 
         File referenceFastaFai
-        File? clair3model
+        File? clair3modelTar
         String? clair3builtinmodel
         String clair3platform
         String minimap2preset   
@@ -122,7 +123,7 @@ workflow LongReadVariantCalling {
                 bamIndex = minimap2Mapping.bamIndex,
                 referenceFasta = referenceFasta,
                 referenceFastaFai = referenceFastaFai,
-                model = clair3model,
+                modelTar = clair3modelTar,
                 builtinModel = clair3builtinmodel,
                 platform = clair3platform,
         }
