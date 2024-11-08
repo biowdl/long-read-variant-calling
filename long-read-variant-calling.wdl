@@ -20,3 +20,99 @@ version 1.0
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import tasks/sequali.wdl as sequali 
+import tasks/minimap2.wdl as minimap2 
+import tasks/clair3.wdl as clair3 
+import tasks/multiqc.wdl as multiqc 
+import tasks/samtools as samtools
+
+task fileIsFastx {
+    input {
+        File file
+    }
+    command <<<
+    python <<CODE
+    with open("~{file}", 'rb') as f: 
+        begin = f.read(1024)
+    if begin[0] == "@" or begin[0] == ">":
+        print("true")
+        sys.exit(0)
+    print("false")
+    CODE
+    >>>
+    output {
+        Boolean result = read_boolean(stdout())
+    }
+
+    runtime {
+        # python:3.7-slim's sha256 digest. This image is based on debian buster.
+        docker: "python@sha256:e0f6a4df17d5707637fa3557ab266f44dddc46ebfc82b0f1dbe725103961da4e"
+    }
+    
+}
+
+task BamToFastq {
+    # A simpler task than in biowdl/tasks for this particular use case
+    input {
+        File inputBam 
+        Int timeMinutes = 1 + ceil(size(inputBam) * 2)
+        String prefix = "sample"
+        String dockerImage = "quay.io/biocontainers/samtools:1.16.1--h6899075_1"
+    }
+
+    command {
+        samtools reset -u ~{inputBam} | samtools fastq ~{inputBam} | bgzip -l 1 > ~{prefix}.fastq.gz
+    }
+    output {
+        fastq = "~{prefix}.fastq.gz"
+    }
+    runtime {
+        cpu: 2  # One for decompressing one for compressing
+        memory: "2GiB"
+        docker: dockerImage
+    }
+
+}
+struct Sample {
+    String id 
+    File reads
+}
+
+workflow LongReadVariantCalling {
+    input {
+        Array[Sample] samples
+        File referenceFasta 
+        File referenceFastaFai
+        File? model
+        String minimap2preset = "map-ont"
+        String outputPrefix = "."
+    }
+    
+    scatter (sample in samples) {
+        call fileIsFastx {
+            input:
+                file=sample.reads,
+        }
+        if (!fileIsFastx.result) {
+            call BamToFastq {
+                input:
+                    inputBam = sample.reads,
+                    prefix = sample.id,
+            }
+        }
+        File reads = select_first([BamToFastq.fastq, sample.reads])
+        call minimap2.Mapping as minimap2Mapping {
+            input:
+                presetOption = minimap2preset,
+                outputPrefix = "~{outputPrefix}/bam",
+                referenceFile = referenceFasta,
+                queryFile = reads,
+        }
+
+    
+    }
+
+    output {
+
+    }
+}
