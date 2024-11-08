@@ -91,6 +91,11 @@ workflow LongReadVariantCalling {
     }
     
     scatter (sample in samples) {
+        call sequali.Sequali as sequaliTask {
+            input: 
+                reads = sample.reads
+                outDir = outputPrefix + "/sequali/"
+        }
         call fileIsFastx {
             input:
                 file=sample.reads,
@@ -111,7 +116,7 @@ workflow LongReadVariantCalling {
                 queryFile = reads,
         }
 
-        call clair3.Clair3 as Clair3 {
+        call clair3.Clair3 as clair3Task {
             input: 
                 outputPrefix = "~{outputPrefix}/clair3/~{sample.id}",
                 bam = minimap2Mapping.bam 
@@ -122,10 +127,19 @@ workflow LongReadVariantCalling {
                 builtinModel = clair3builtinmodel 
                 platform = clair3platform 
         }
- 
+    }
+    call multiqc.MultiQC {
+        input:
+            reports = sequaliTask.json
+            dataDir = False
     }
 
     output {
-
+        File multiqcReport = MultiQC.multiqcReport 
+        Array[File] bamFiles = minimap2Mapping.bam 
+        Array[File] bamIndexes = minimap2Mapping.bamIndex 
+        Array[File] vcfFiles = clair3task.vcf 
+        Array[File] vcfIndexes = clair3task.vcfIndex 
+        Array[File] sequaliReports = sequaliTask.html
     }
 }
