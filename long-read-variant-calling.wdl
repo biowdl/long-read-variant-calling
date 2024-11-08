@@ -31,8 +31,12 @@ task fileIsFastx {
     }
     command <<<
     python <<CODE
-    with open("~{file}", 'rb') as f: 
-        begin = f.read(1024)
+    import gzip
+    with open("~{file}", 'rb') as f:
+        begin = f.peek(1024)
+        if begin[:2] == b"\x1f\x8b":
+            with gzip.open(f, "rb") as gz: 
+                begin = gz.read(1024)
     if begin[0] == "@" or begin[0] == ">":
         print("true")
         sys.exit(0)
@@ -56,12 +60,12 @@ task BamToFastq {
         File inputBam 
         Int timeMinutes = 1 + ceil(size(inputBam, "G") * 2)
         String prefix = "sample"
-        String dockerImage = "quay.io/biocontainers/samtools:1.16.1--h6899075_1"
+        String dockerImage = "quay.io/biocontainers/samtools:1.21--h50ea8bc_0"
     }
 
     command {
         set -eu -o pipefail
-        samtools reset ~{inputBam} | samtools fastq - | bgzip -@ 2 -l 1 > ~{prefix}.fastq.gz
+        samtools reset ~{inputBam} | samtools fastq | bgzip -@ 2 -l 1 > ~{prefix}.fastq.gz
     }
     output {
         File fastq = "~{prefix}.fastq.gz"
