@@ -54,7 +54,7 @@ task BamToFastq {
     # A simpler task than in biowdl/tasks for this particular use case
     input {
         File inputBam 
-        Int timeMinutes = 1 + ceil(size(inputBam) * 2)
+        Int timeMinutes = 1 + ceil(size(inputBam, "G") * 2)
         String prefix = "sample"
         String dockerImage = "quay.io/biocontainers/samtools:1.16.1--h6899075_1"
     }
