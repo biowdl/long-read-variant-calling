@@ -85,7 +85,7 @@ workflow LongReadVariantCalling {
         File? clair3model
         String? clair3builtinmodel
         String clair3platform
-        String minimap2preset
+        String minimap2preset   
         String outputPrefix = "."
     }
     
