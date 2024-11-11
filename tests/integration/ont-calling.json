@@ -16,6 +16,7 @@
     ],
     "LongReadVariantCalling.clair3Task.memory": "1GiB",
     "LongReadVariantCalling.clair3Task.threads": 1,
+    "LongReadVariantCalling.clair3Task.includeAllCtgs": true,
     "LongReadVariantCalling.minimap2Mapping.memory": "1GiB",
     "LongReadVariantCalling.minimap2Mapping.cores": 1,
     "LongReadVariantCalling.sequaliTask.threads": 1
