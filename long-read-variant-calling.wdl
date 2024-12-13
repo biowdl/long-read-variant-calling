@@ -21,9 +21,11 @@ version 1.0
 # SOFTWARE.
 
 import "tasks/sequali.wdl" as sequali 
+import "tasks/samtools.wdl" as samtools
 import "tasks/minimap2.wdl" as minimap2 
 import "tasks/clair3.wdl" as clair3 
 import "tasks/multiqc.wdl" as multiqc 
+
 
 task fileIsFastx {
     input {
@@ -76,12 +78,19 @@ task BamToFastq {
         docker: dockerImage
         time_minutes: timeMinutes
     }
+}
 
+struct SampleDataset {
+    String readgroup_id
+    File file
+    String? lib_id
 }
+
 struct Sample {
-    String id 
-    File reads
+    String id
+    Array[SampleDataset]+ datasets
 }
+
 
 workflow LongReadVariantCalling {
     input {
@@ -96,36 +105,54 @@ workflow LongReadVariantCalling {
     }
     
     scatter (sample in samples) {
-        call sequali.Sequali as sequaliTask {
-            input: 
-                reads = sample.reads,
-                outDir = outputPrefix + "/sequali/",
-        }
-        call fileIsFastx {
-            input:
-                file=sample.reads,
-        }
-        if (!fileIsFastx.result) {
-            call BamToFastq {
+        scatter (dataset in sample.datasets) {
+            String lib_id = select_first([dataset.lib_id, "lib1"])
+            String readgroupID = "~{sample.id}-~{lib_id}-~{dataset.readgroup_id}"
+            String libraryID = "~{sample.id}-~{lib_id}"
+
+            call sequali.Sequali as sequaliTask {
+                input: 
+                    reads = dataset.file,
+                    outDir = outputPrefix + "/sequali/",
+            }
+            call fileIsFastx {
                 input:
-                    inputBam = sample.reads,
-                    prefix = sample.id,
+                    file=dataset.file,
+            }
+            if (!fileIsFastx.result) {
+                call BamToFastq {
+                    input:
+                        inputBam = dataset.file,
+                        prefix = sample.id,
+                }
+            }
+            File reads = select_first([BamToFastq.fastq, dataset.file])
+            call minimap2.Mapping as minimap2Mapping {
+                input:
+                    presetOption = minimap2preset,
+                    outputPrefix = "~{outputPrefix}/~{sample.id}/~{readgroupID}",
+                    referenceFile = referenceFasta,
+                    queryFile = reads,
+                    readgroup = "@RG\tID:~{readgroupID}\tLB:~{libraryID}\tSM:~{sample.id}"
             }
         }
-        File reads = select_first([BamToFastq.fastq, sample.reads])
-        call minimap2.Mapping as minimap2Mapping {
-            input:
-                presetOption = minimap2preset,
-                outputPrefix = "~{outputPrefix}/bam/~{sample.id}",
-                referenceFile = referenceFasta,
-                queryFile = reads,
+        if (length(minimap2Mapping.bam) > 1) {
+            call samtools.Merge as mergeBam {
+                input:
+                    bamFiles=minimap2Mapping.bam,
+                    outputBamPath="~{outputPrefix}/~{sample.id}/~{sample.id}.bam",
+            }
         }
+
+        File bam = select_first([mergeBam.outputBam, minimap2Mapping.bam[0]])
+        File bamIndex = select_first([mergeBam.outputBamIndex, minimap2Mapping.bamIndex[0]])
+        
 
         call clair3.Clair3 as clair3Task {
             input: 
                 outputPrefix = "~{outputPrefix}/clair3/~{sample.id}",
-                bam = minimap2Mapping.bam,
-                bamIndex = minimap2Mapping.bamIndex,
+                bam = bam,
+                bamIndex = bamIndex,
                 referenceFasta = referenceFasta,
                 referenceFastaFai = referenceFastaFai,
                 modelTar = clair3modelTar,
@@ -135,16 +162,16 @@ workflow LongReadVariantCalling {
     }
     call multiqc.MultiQC {
         input:
-            reports = sequaliTask.json,
+            reports = flatten(sequaliTask.json),
             dataDir = false,
     }
 
     output {
         File multiqcReport = MultiQC.multiqcReport 
-        Array[File] bamFiles = minimap2Mapping.bam 
-        Array[File] bamIndexes = minimap2Mapping.bamIndex 
+        Array[File] bamFiles = bam 
+        Array[File] bamIndexes = bamIndex 
         Array[File] vcfFiles = clair3Task.vcf 
         Array[File] vcfIndexes = clair3Task.vcfIndex 
-        Array[File] sequaliReports = sequaliTask.html
+        Array[File] sequaliReports = flatten(sequaliTask.html)
     }
 }

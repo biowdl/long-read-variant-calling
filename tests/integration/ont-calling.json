@@ -7,11 +7,30 @@
     "LongReadVariantCalling.samples": [
         {
             "id": "GM24385_fastq", 
-            "reads": "tests/data/GM24385_1_mitochondrial_reads.fastq.gz"
+            "datasets": [{
+                "readgroup_id": "fastq",
+                "file":" tests/data/GM24385_1_mitochondrial_reads.fastq.gz"
+            }]
         },
         {
             "id": "GM24385_ubam",
-            "reads": "tests/data/GM24385_1_mitochondrial_reads.unaligned.bam"
+            "datasets": [{
+                "readgroup_id": "ubam",
+                "file": "tests/data/GM24385_1_mitochondrial_reads.unaligned.bam"
+            }]
+        },
+        {
+            "id": "GM24385_merged",
+            "datasets": [
+                {
+                    "readgroup_id": "ubam",
+                    "file": "tests/data/GM24385_1_mitochondrial_reads.unaligned.bam"
+                },
+                {
+                    "readgroup_id": "fastq",
+                    "file":" tests/data/GM24385_1_mitochondrial_reads.fastq.gz"
+                }
+            ]
         }
     ],
     "LongReadVariantCalling.clair3Task.memory": "1GiB",
@@ -20,5 +39,4 @@
     "LongReadVariantCalling.minimap2Mapping.memory": "1GiB",
     "LongReadVariantCalling.minimap2Mapping.cores": 1,
     "LongReadVariantCalling.sequaliTask.threads": 1
-
   }
