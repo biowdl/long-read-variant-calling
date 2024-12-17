@@ -113,7 +113,7 @@ workflow LongReadVariantCalling {
             call sequali.Sequali as sequaliTask {
                 input: 
                     reads = dataset.file,
-                    outDir = outputPrefix + "/sequali/",
+                    outDir = outputPrefix + "/~{sample.id}/",
             }
             call fileIsFastx {
                 input:
@@ -126,11 +126,12 @@ workflow LongReadVariantCalling {
                         prefix = sample.id,
                 }
             }
+            String bamPrefix = if length(sample.datasets) == 1 then sample.id else readgroupID
             File reads = select_first([BamToFastq.fastq, dataset.file])
             call minimap2.Mapping as minimap2Mapping {
                 input:
                     presetOption = minimap2preset,
-                    outputPrefix = "~{outputPrefix}/~{sample.id}/~{readgroupID}",
+                    outputPrefix = "~{outputPrefix}/~{sample.id}/~{bamPrefix}",
                     referenceFile = referenceFasta,
                     queryFile = reads,
                     readgroup = "@RG\tID:~{readgroupID}\tLB:~{libraryID}\tSM:~{sample.id}"
@@ -150,7 +151,7 @@ workflow LongReadVariantCalling {
 
         call clair3.Clair3 as clair3Task {
             input: 
-                outputPrefix = "~{outputPrefix}/clair3/~{sample.id}",
+                outputPrefix = "~{outputPrefix}/~{sample.id}/~{sample.id}",
                 bam = bam,
                 bamIndex = bamIndex,
                 referenceFasta = referenceFasta,
