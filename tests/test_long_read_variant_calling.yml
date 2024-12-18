@@ -19,3 +19,9 @@
     - path: test-output/out/GM24385_fastq/GM24385_1_mitochondrial_reads.fastq.gz.html
     - path: test-output/out/GM24385_ubam/GM24385_1_mitochondrial_reads.unaligned.bam.html
     - path: test-output/out/multiqc_report.html
+    - path: test-output/out/GM24385_merged/GM24385_merged.bam
+    - path: test-output/out/GM24385_merged/GM24385_merged.vcf.gz
+      contains:
+        - "NC_012920.1	263	.	A	G"
+    - path: test-output/out/GM24385_merged/GM24385_1_mitochondrial_reads.fastq.gz.html
+    - path: test-output/out/GM24385_merged/GM24385_1_mitochondrial_reads.unaligned.bam.html
