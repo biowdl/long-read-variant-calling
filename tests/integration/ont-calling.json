@@ -9,7 +9,7 @@
             "id": "GM24385_fastq", 
             "datasets": [{
                 "readgroup_id": "fastq",
-                "file":" tests/data/GM24385_1_mitochondrial_reads.fastq.gz"
+                "file": "tests/data/GM24385_1_mitochondrial_reads.fastq.gz"
             }]
         },
         {
@@ -28,7 +28,7 @@
                 },
                 {
                     "readgroup_id": "fastq",
-                    "file":" tests/data/GM24385_1_mitochondrial_reads.fastq.gz"
+                    "file": "tests/data/GM24385_1_mitochondrial_reads.fastq.gz"
                 }
             ]
         }

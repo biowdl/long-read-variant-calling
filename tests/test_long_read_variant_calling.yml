@@ -1,6 +1,6 @@
 - name: Mitochondrial alignment
   command: >-
-    miniwdl run --cfg tests/miniwdl.cfg
+    miniwdl run --cfg tests/miniwdl.cfg -d test-output/.
     -i tests/integration/ont-calling.json 
     long-read-variant-calling.wdl 
   files:
