@@ -135,7 +135,8 @@ workflow LongReadVariantCalling {
                     outputPrefix = "~{outputPrefix}/~{sample.id}/~{bamPrefix}",
                     referenceFile = referenceFasta,
                     queryFile = reads,
-                    readgroup = "@RG\\tID:~{readgroupID}\\tLB:~{libraryID}\\tSM:~{sample.id}"
+                    readgroup = "@RG\\tID:~{readgroupID}\\tLB:~{libraryID}\\tSM:~{sample.id}",
+                    copyCommentsFromFastq = true,
             }
         }
         if (length(minimap2Mapping.bam) > 1) {
