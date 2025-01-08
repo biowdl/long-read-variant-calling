@@ -63,17 +63,18 @@ task BamToFastq {
         Int timeMinutes = 1 + ceil(size(inputBam, "G") * 2)
         String prefix = "sample"
         String dockerImage = "quay.io/biocontainers/samtools:1.21--h50ea8bc_0"
+        String tagsToKeep = "MM,ML,MN"
     }
 
-    command {
+    command  <<<
         set -eu -o pipefail
-        samtools reset ~{inputBam} | samtools fastq | bgzip -@ 2 -l 1 > ~{prefix}.fastq.gz
-    }
+        samtools fastq -T ~{tagsToKeep} | bgzip -@ 2 -l 1 > ~{prefix}.fastq.gz
+    >>>
     output {
         File fastq = "~{prefix}.fastq.gz"
     }
     runtime {
-        cpu: 4  # One for samtools reset, samtools fastq, and two for bgzip for optimal balance.
+        cpu: 3  # One for samtools reset and two for bgzip for optimal balance.
         memory: "2GiB"
         docker: dockerImage
         time_minutes: timeMinutes
