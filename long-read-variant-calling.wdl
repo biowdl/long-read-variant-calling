@@ -116,7 +116,7 @@ workflow LongReadVariantCalling {
 
         call clair3.Clair3 as clair3Task {
             input: 
-                outputPrefix = "~{outputPrefix}/~{sample.id}/~{sample.id}",
+                outputPrefix = "~{outputPrefix}/~{sample.id}/~{sample.id}.clair3",
                 bam = bam,
                 bamIndex = bamIndex,
                 referenceFasta = referenceFasta,
