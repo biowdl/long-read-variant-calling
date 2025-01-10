@@ -124,6 +124,7 @@ workflow LongReadVariantCalling {
                 modelTar = clair3modelTar,
                 builtinModel = clair3builtinmodel,
                 platform = clair3platform,
+                sampleName = sample.id,
         }
     }
     call multiqc.MultiQC {
