@@ -56,31 +56,6 @@ task fileIsFastx {
     
 }
 
-task BamToFastq {
-    # A simpler task than in biowdl/tasks for this particular use case
-    input {
-        File inputBam 
-        Int timeMinutes = 1 + ceil(size(inputBam, "G") * 2)
-        String prefix = "sample"
-        String dockerImage = "quay.io/biocontainers/samtools:1.21--h50ea8bc_0"
-        String tagsToKeep = "MM,ML,MN"
-    }
-
-    command  <<<
-        set -eu -o pipefail
-        samtools fastq -T ~{tagsToKeep} | bgzip -@ 2 -l 1 > ~{prefix}.fastq.gz
-    >>>
-    output {
-        File fastq = "~{prefix}.fastq.gz"
-    }
-    runtime {
-        cpu: 3  # One for samtools reset and two for bgzip for optimal balance.
-        memory: "2GiB"
-        docker: dockerImage
-        time_minutes: timeMinutes
-    }
-}
-
 struct SampleDataset {
     String readgroup_id
     File file
@@ -116,27 +91,15 @@ workflow LongReadVariantCalling {
                     reads = dataset.file,
                     outDir = outputPrefix + "/~{sample.id}/",
             }
-            call fileIsFastx {
-                input:
-                    file=dataset.file,
-            }
-            if (!fileIsFastx.result) {
-                call BamToFastq {
-                    input:
-                        inputBam = dataset.file,
-                        prefix = sample.id,
-                }
-            }
+
             String bamPrefix = if length(sample.datasets) == 1 then sample.id else readgroupID
-            File reads = select_first([BamToFastq.fastq, dataset.file])
             call minimap2.Mapping as minimap2Mapping {
                 input:
                     presetOption = minimap2preset,
                     outputPrefix = "~{outputPrefix}/~{sample.id}/~{bamPrefix}",
                     referenceFile = referenceFasta,
-                    queryFile = reads,
+                    queryFile = dataset.file,
                     readgroup = "@RG\\tID:~{readgroupID}\\tLB:~{libraryID}\\tSM:~{sample.id}",
-                    copyCommentsFromFastq = true,
             }
         }
         if (length(minimap2Mapping.bam) > 1) {
