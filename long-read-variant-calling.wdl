@@ -25,7 +25,9 @@ import "tasks/samtools.wdl" as samtools
 import "tasks/minimap2.wdl" as minimap2 
 import "tasks/clair3.wdl" as clair3 
 import "tasks/multiqc.wdl" as multiqc 
-
+import "tasks/chunked-scatter.wdl" as chunkedScatter
+import "tasks/deepvariant.wdl" as deepvariant
+import "tasks/picard.wdl" as picard
 
 task fileIsFastx {
     input {
@@ -78,9 +80,12 @@ workflow LongReadVariantCalling {
         String clair3platform
         String minimap2preset   
         String outputPrefix = "."
+        String deepvariantModelType = "ONT_R104"
     }
     
     scatter (sample in samples) {
+            String sampleDir = "~{outputPrefix}/~{sample.id}"
+
         scatter (dataset in sample.datasets) {
             String lib_id = select_first([dataset.lib_id, "lib1"])
             String readgroupID = "~{sample.id}-~{lib_id}-~{dataset.readgroup_id}"
@@ -89,14 +94,14 @@ workflow LongReadVariantCalling {
             call sequali.Sequali as sequaliTask {
                 input: 
                     reads = dataset.file,
-                    outDir = outputPrefix + "/~{sample.id}/",
+                    outDir = sampleDir,
             }
 
             String bamPrefix = if length(sample.datasets) == 1 then sample.id else readgroupID
             call minimap2.Mapping as minimap2Mapping {
                 input:
                     presetOption = minimap2preset,
-                    outputPrefix = "~{outputPrefix}/~{sample.id}/~{bamPrefix}",
+                    outputPrefix = "~{sampleDir}/~{bamPrefix}",
                     referenceFile = referenceFasta,
                     queryFile = dataset.file,
                     readgroup = "@RG\\tID:~{readgroupID}\\tLB:~{libraryID}\\tSM:~{sample.id}",
@@ -106,17 +111,16 @@ workflow LongReadVariantCalling {
             call samtools.Merge as mergeBam {
                 input:
                     bamFiles=minimap2Mapping.bam,
-                    outputBamPath="~{outputPrefix}/~{sample.id}/~{sample.id}.bam",
+                    outputBamPath="~{sampleDir}/~{sample.id}.bam",
             }
         }
 
         File bam = select_first([mergeBam.outputBam, minimap2Mapping.bam[0]])
         File bamIndex = select_first([mergeBam.outputBamIndex, minimap2Mapping.bamIndex[0]])
-        
 
         call clair3.Clair3 as clair3Task {
             input: 
-                outputPrefix = "~{outputPrefix}/~{sample.id}/~{sample.id}.clair3",
+                outputPrefix = "~{sampleDir}/~{sample.id}.clair3",
                 bam = bam,
                 bamIndex = bamIndex,
                 referenceFasta = referenceFasta,
@@ -126,10 +130,41 @@ workflow LongReadVariantCalling {
                 platform = clair3platform,
                 sampleName = sample.id,
         }
+        call chunkedScatter.ScatterRegions as scatterList {
+            input:
+                inputFile = referenceFastaFai,
+                scatterSizeMillions = 100,
+                splitContigs = true,
+        }
+
+        scatter (region in scatterList.scatters) {
+            call deepvariant.RunDeepVariant as deepVariantTask {
+                input:
+                    referenceFasta = referenceFasta,
+                    referenceFastaIndex = referenceFastaFai,
+                    inputBam = bam, 
+                    inputBamIndex = bamIndex,
+                    modelType = deepvariantModelType,
+                    outputVcf = "~{sample.id}.~{basename(region)}.vcf.gz",
+                    regions = region,
+            }
+        }
+        Array[File] deepVariantReports = flatten(deepVariantTask.outputVCFStatsReport)
+
+        call picard.MergeVCFs as mergeDeepVariantVCFs {
+            input:
+                inputVCFs = deepVariantTask.outputVCF,
+                inputVCFsIndexes = deepVariantTask.outputVCFIndex,
+                outputVcfPath = "~{sampleDir}/~{sample.id}.deepvariant.vcf.gz",
+        }
+
     }
     call multiqc.MultiQC {
         input:
-            reports = flatten(sequaliTask.json),
+            reports = flatten([
+                flatten(sequaliTask.json), 
+                flatten(deepVariantReports),
+            ]),
             dataDir = false,
     }
 
