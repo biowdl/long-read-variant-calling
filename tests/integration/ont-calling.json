@@ -40,5 +40,5 @@
     "LongReadVariantCalling.minimap2Mapping.cores": 1,
     "LongReadVariantCalling.sequaliTask.threads": 1,
     "LongReadVariantCalling.deepVariantTask.memory": "8GiB",
-    "LongReadVariantCalling.deepVariantTask.numShards": 1
+    "LongReadVariantCalling.deepVariantTask.numShards": 4
   }
