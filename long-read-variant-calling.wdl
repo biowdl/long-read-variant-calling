@@ -159,6 +159,7 @@ workflow LongReadVariantCalling {
         }
 
     }
+
     call multiqc.MultiQC {
         input:
             reports = flatten([
@@ -172,8 +173,10 @@ workflow LongReadVariantCalling {
         File multiqcReport = MultiQC.multiqcReport 
         Array[File] bamFiles = bam 
         Array[File] bamIndexes = bamIndex 
-        Array[File] vcfFiles = clair3Task.vcf 
-        Array[File] vcfIndexes = clair3Task.vcfIndex 
+        Array[File] clair3VcfFiles = clair3Task.vcf 
+        Array[File] clair3VcfIndexes = clair3Task.vcfIndex 
+        Array[File] deepVariantVcfFiles = mergeDeepVariantVCFs.outputVcf
+        Array[File] deepVariantVcfIndexes = mergeDeepVariantVCFs.outputVcfIndex
         Array[File] sequaliReports = flatten(sequaliTask.html)
     }
 }

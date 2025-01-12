@@ -12,9 +12,17 @@
       contains:  # Verified with IGV. This is probably a true variant.
         - "NC_012920.1	263	.	A	G"
     - path: test-output/out/GM24385_fastq/GM24385_fastq.clair3.vcf.gz.tbi
+    - path: test-output/out/GM24385_fastq/GM24385_fastq.deepvariant.vcf.gz
+      contains:
+        - "NC_012920.1	263	.	A	G"
+    - path: test-output/out/GM24385_fastq/GM24385_fastq.deepvariant.vcf.gz.tbi
     - path: test-output/out/GM24385_ubam/GM24385_ubam.clair3.vcf.gz
       contains:
         - "NC_012920.1	263	.	A	G"
+    - path: test-output/out/GM24385_ubam/GM24385_ubam.deepvariant.vcf.gz
+      contains:
+        - "NC_012920.1	263	.	A	G"
+    - path: test-output/out/GM24385_ubam/GM24385_ubam.deepvariant.vcf.gz.tbi
     - path: test-output/out/GM24385_ubam/GM24385_ubam.clair3.vcf.gz.tbi
     - path: test-output/out/GM24385_fastq/GM24385_1_mitochondrial_reads.fastq.gz.html
     - path: test-output/out/GM24385_ubam/GM24385_1_mitochondrial_reads.unaligned.bam.html
@@ -23,5 +31,9 @@
     - path: test-output/out/GM24385_merged/GM24385_merged.clair3.vcf.gz
       contains:
         - "NC_012920.1	263	.	A	G"
+    - path: test-output/out/GM24385_merged/GM24385_merged.deepvariant.vcf.gz
+      contains:
+        - "NC_012920.1	263	.	A	G"
+    - path: test-output/out/GM24385_merged/GM24385_merged.deepvariant.vcf.gz.tbi
     - path: test-output/out/GM24385_merged/GM24385_1_mitochondrial_reads.fastq.gz.html
     - path: test-output/out/GM24385_merged/GM24385_1_mitochondrial_reads.unaligned.bam.html
