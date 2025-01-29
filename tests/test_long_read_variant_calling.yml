@@ -56,3 +56,20 @@
       should_exist: false
     - path: test-output/out/GM24385_ubam/GM24385_1_mitochondrial_reads.unaligned.bam.html
     - path: test-output/out/multiqc_report.html
+
+
+- name: ModKit
+  command: >-
+    miniwdl run --cfg tests/miniwdl.cfg -d test-output/.
+    -i tests/integration/ont-calling-modkit.json 
+    long-read-variant-calling.wdl 
+  files:
+    - path: test-output/out/GM24385_ubam/GM24385_ubam.bam
+    - path: test-output/out/GM24385_ubam/GM24385_ubam.bam.bai
+    - path: test-output/out/GM24385_ubam/GM24385_ubam.clair3.vcf.gz
+      should_exist: false
+    - path: test-output/out/GM24385_ubam/GM24385_1_mitochondrial_reads.unaligned.bam.html
+    - path: test-output/out/multiqc_report.html
+    - path: test-output/out/GM24385_ubam/GM24385_ubam.pseudoepic.bed
+    - path: test-output/out/GM24385_ubam/GM24385_ubam.modkit.log
+    

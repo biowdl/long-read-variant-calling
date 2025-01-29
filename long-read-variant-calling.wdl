@@ -28,6 +28,7 @@ import "tasks/multiqc.wdl" as multiqc
 import "tasks/chunked-scatter.wdl" as chunkedScatter
 import "tasks/deepvariant.wdl" as deepvariant
 import "tasks/picard.wdl" as picard
+import "tasks/modkit.wdl" as modkit
 
 task fileIsFastx {
     input {
@@ -168,6 +169,19 @@ workflow LongReadVariantCalling {
 
         }
 
+        if (runModKit) {
+            call modkit.Pileup as ModKitPileup {
+                input: 
+                    bam=bam, 
+                    bamIndex=bamIndex, 
+                    outputBed="~{sampleDir}/~{sample.id}.pseudoepic.bed",
+                    referenceFasta=referenceFasta,
+                    referenceFastaFai=referenceFastaFai, 
+                    logFilePath="~{sampleDir}/~{sample.id}.modkit.log",
+            }
+
+        }
+
     }
 
     call multiqc.MultiQC {
@@ -188,5 +202,7 @@ workflow LongReadVariantCalling {
         Array[File] deepVariantVcfFiles = select_all(mergeDeepVariantVCFs.outputVcf)
         Array[File] deepVariantVcfIndexes = select_all(mergeDeepVariantVCFs.outputVcfIndex)
         Array[File] sequaliReports = flatten(sequaliTask.html)
+        Array[File] modKitBed = select_all(ModKitPileup.out) 
+        Array[File] modKitLog = select_all(ModKitPileup.logFile)
     }
 }
