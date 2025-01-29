@@ -81,6 +81,10 @@ workflow LongReadVariantCalling {
         String minimap2preset   
         String outputPrefix = "."
         String deepvariantModelType = "ONT_R104"
+
+        Boolean runClair3 = true 
+        Boolean runDeepVariant = false 
+        Boolean runModKit = false
     }
     
     scatter (sample in samples) {
@@ -118,44 +122,50 @@ workflow LongReadVariantCalling {
         File bam = select_first([mergeBam.outputBam, minimap2Mapping.bam[0]])
         File bamIndex = select_first([mergeBam.outputBamIndex, minimap2Mapping.bamIndex[0]])
 
-        call clair3.Clair3 as clair3Task {
-            input: 
-                outputPrefix = "~{sampleDir}/~{sample.id}.clair3",
-                bam = bam,
-                bamIndex = bamIndex,
-                referenceFasta = referenceFasta,
-                referenceFastaFai = referenceFastaFai,
-                modelTar = clair3modelTar,
-                builtinModel = clair3builtinmodel,
-                platform = clair3platform,
-                sampleName = sample.id,
-        }
-        call chunkedScatter.ScatterRegions as scatterList {
-            input:
-                inputFile = referenceFastaFai,
-                scatterSizeMillions = 100,
-                splitContigs = true,
-        }
-
-        scatter (region in scatterList.scatters) {
-            call deepvariant.RunDeepVariant as deepVariantTask {
-                input:
+        if (runClair3) {
+            call clair3.Clair3 as clair3Task {
+                input: 
+                    outputPrefix = "~{sampleDir}/~{sample.id}.clair3",
+                    bam = bam,
+                    bamIndex = bamIndex,
                     referenceFasta = referenceFasta,
-                    referenceFastaIndex = referenceFastaFai,
-                    inputBam = bam, 
-                    inputBamIndex = bamIndex,
-                    modelType = deepvariantModelType,
-                    outputVcf = "~{sample.id}.~{basename(region)}.vcf.gz",
-                    regions = region,
+                    referenceFastaFai = referenceFastaFai,
+                    modelTar = clair3modelTar,
+                    builtinModel = clair3builtinmodel,
+                    platform = clair3platform,
+                    sampleName = sample.id,
             }
         }
-        Array[File] deepVariantReports = flatten(deepVariantTask.outputVCFStatsReport)
 
-        call picard.MergeVCFs as mergeDeepVariantVCFs {
-            input:
-                inputVCFs = deepVariantTask.outputVCF,
-                inputVCFsIndexes = deepVariantTask.outputVCFIndex,
-                outputVcfPath = "~{sampleDir}/~{sample.id}.deepvariant.vcf.gz",
+        if (runDeepVariant) {
+            call chunkedScatter.ScatterRegions as scatterList {
+                input:
+                    inputFile = referenceFastaFai,
+                    scatterSizeMillions = 100,
+                    splitContigs = true,
+            }
+
+            scatter (region in scatterList.scatters) {
+                call deepvariant.RunDeepVariant as deepVariantTask {
+                    input:
+                        referenceFasta = referenceFasta,
+                        referenceFastaIndex = referenceFastaFai,
+                        inputBam = bam, 
+                        inputBamIndex = bamIndex,
+                        modelType = deepvariantModelType,
+                        outputVcf = "~{sample.id}.~{basename(region)}.vcf.gz",
+                        regions = region,
+                }
+            }
+            Array[File] deepVariantReports = flatten(deepVariantTask.outputVCFStatsReport)
+
+            call picard.MergeVCFs as mergeDeepVariantVCFs {
+                input:
+                    inputVCFs = deepVariantTask.outputVCF,
+                    inputVCFsIndexes = deepVariantTask.outputVCFIndex,
+                    outputVcfPath = "~{sampleDir}/~{sample.id}.deepvariant.vcf.gz",
+            }
+
         }
 
     }
@@ -164,7 +174,7 @@ workflow LongReadVariantCalling {
         input:
             reports = flatten([
                 flatten(sequaliTask.json), 
-                flatten(deepVariantReports),
+                flatten(select_all(deepVariantReports)),
             ]),
             dataDir = false,
     }
@@ -173,10 +183,10 @@ workflow LongReadVariantCalling {
         File multiqcReport = MultiQC.multiqcReport 
         Array[File] bamFiles = bam 
         Array[File] bamIndexes = bamIndex 
-        Array[File] clair3VcfFiles = clair3Task.vcf 
-        Array[File] clair3VcfIndexes = clair3Task.vcfIndex 
-        Array[File] deepVariantVcfFiles = mergeDeepVariantVCFs.outputVcf
-        Array[File] deepVariantVcfIndexes = mergeDeepVariantVCFs.outputVcfIndex
+        Array[File] clair3VcfFiles = select_all(clair3Task.vcf) 
+        Array[File] clair3VcfIndexes = select_all(clair3Task.vcfIndex) 
+        Array[File] deepVariantVcfFiles = select_all(mergeDeepVariantVCFs.outputVcf)
+        Array[File] deepVariantVcfIndexes = select_all(mergeDeepVariantVCFs.outputVcfIndex)
         Array[File] sequaliReports = flatten(sequaliTask.html)
     }
 }
