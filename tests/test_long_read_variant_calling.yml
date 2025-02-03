@@ -70,6 +70,6 @@
       should_exist: false
     - path: test-output/out/GM24385_ubam/GM24385_1_mitochondrial_reads.unaligned.bam.html
     - path: test-output/out/multiqc_report.html
-    - path: test-output/out/GM24385_ubam/GM24385_ubam.pseudoepic.bed
+    - path: test-output/out/GM24385_ubam/GM24385_ubam.modkit.bed
     - path: test-output/out/GM24385_ubam/GM24385_ubam.modkit.log
     

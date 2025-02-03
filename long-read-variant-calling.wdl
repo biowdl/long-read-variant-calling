@@ -174,7 +174,7 @@ workflow LongReadVariantCalling {
                 input: 
                     bam=bam, 
                     bamIndex=bamIndex, 
-                    outputBed="~{sampleDir}/~{sample.id}.pseudoepic.bed",
+                    outputBed="~{sampleDir}/~{sample.id}.modkit.bed",
                     referenceFasta=referenceFasta,
                     referenceFastaFai=referenceFastaFai, 
                     logFilePath="~{sampleDir}/~{sample.id}.modkit.log",
@@ -202,7 +202,8 @@ workflow LongReadVariantCalling {
         Array[File] deepVariantVcfFiles = select_all(mergeDeepVariantVCFs.outputVcf)
         Array[File] deepVariantVcfIndexes = select_all(mergeDeepVariantVCFs.outputVcfIndex)
         Array[File] sequaliReports = flatten(sequaliTask.html)
-        Array[File] modKitBed = select_all(ModKitPileup.out) 
+        Array[File] modKitBed = select_all(ModKitPileup.out)
+        Array[File] modKitBedGraph = flatten(select_all(ModKitPileup.outFiles))
         Array[File] modKitLog = select_all(ModKitPileup.logFile)
     }
 }
