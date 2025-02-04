@@ -206,4 +206,25 @@ workflow LongReadVariantCalling {
         Array[File] modKitBedGraph = flatten(select_all(ModKitPileup.outFiles))
         Array[File] modKitLog = select_all(ModKitPileup.logFile)
     }
+
+    parameter_meta {
+        # input 
+        samples: {description: "The samples with metadata and files.", category: "required"}
+        referenceFasta: {description: "The reference FASTA file.", category: "required"}
+        referenceFastaFai: {description: "The reference FASTA index file.", category: "required"}
+        
+        clair3modelTar: {description: "TAR file with clair3 model if no builtin model is used", category: "common"}
+        clair3builtinmodel: {description: "String describing a builtin model if no TAR file is used.", category: "common"}
+        clair3platform: {description: "String describing the clair3 platform", category: "required"}
+        minimap2preset: {description: "Minimap2 preset string", category: "required"}
+        
+
+        outputPrefix: {description: "Where to place the data.", category: "advanced"}
+        deepvariantModelType: {description: "The DeepVariant model to use", category: "advanced"}
+
+        runClair3: {description: "Whether to run clair3.", category: "common"} 
+        runDeepVariant: {description: "Whether to run DeepVariant", category: "common"}
+        runModKit: {description: "Whether to run ModKit", category: "common"}
+
+    }
 }
