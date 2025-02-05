@@ -30,34 +30,6 @@ import "tasks/deepvariant.wdl" as deepvariant
 import "tasks/picard.wdl" as picard
 import "tasks/modkit.wdl" as modkit
 
-task fileIsFastx {
-    input {
-        File file
-    }
-    command <<<
-    python <<CODE
-    import gzip
-    with open("~{file}", 'rb') as f:
-        begin = f.peek(1024)
-        if begin[:2] == b"\x1f\x8b":
-            with gzip.open(f, "rb") as gz: 
-                begin = gz.read(1024)
-    if begin[0] == "@" or begin[0] == ">":
-        print("true")
-        sys.exit(0)
-    print("false")
-    CODE
-    >>>
-    output {
-        Boolean result = read_boolean(stdout())
-    }
-
-    runtime {
-        # python:3.7-slim's sha256 digest. This image is based on debian buster.
-        docker: "python@sha256:e0f6a4df17d5707637fa3557ab266f44dddc46ebfc82b0f1dbe725103961da4e"
-    }
-    
-}
 
 struct SampleDataset {
     String readgroup_id
