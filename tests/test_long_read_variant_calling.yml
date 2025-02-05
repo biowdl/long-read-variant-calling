@@ -1,0 +1,75 @@
+- name: Default
+  command: >-
+    miniwdl run --cfg tests/miniwdl.cfg -d test-output/.
+    -i tests/integration/ont-calling.json 
+    long-read-variant-calling.wdl 
+  files:
+    - path: test-output/out/GM24385_fastq/GM24385_fastq.bam
+    - path: test-output/out/GM24385_fastq/GM24385_fastq.bam.bai
+    - path: test-output/out/GM24385_ubam/GM24385_ubam.bam
+    - path: test-output/out/GM24385_ubam/GM24385_ubam.bam.bai
+    - path: test-output/out/GM24385_fastq/GM24385_fastq.clair3.vcf.gz
+      contains:  # Verified with IGV. This is probably a true variant.
+        - "NC_012920.1	263	.	A	G"
+    - path: test-output/out/GM24385_fastq/GM24385_fastq.clair3.vcf.gz.tbi
+    - path: test-output/out/GM24385_fastq/GM24385_fastq.deepvariant.vcf.gz
+      should_exist: false
+    - path: test-output/out/GM24385_fastq/GM24385_fastq.deepvariant.vcf.gz.tbi
+      should_exist: false
+    - path: test-output/out/GM24385_ubam/GM24385_ubam.clair3.vcf.gz
+      contains:
+        - "NC_012920.1	263	.	A	G"
+    - path: test-output/out/GM24385_ubam/GM24385_ubam.deepvariant.vcf.gz
+      should_exist: false
+    - path: test-output/out/GM24385_ubam/GM24385_ubam.deepvariant.vcf.gz.tbi
+      should_exist: false
+    - path: test-output/out/GM24385_ubam/GM24385_ubam.clair3.vcf.gz.tbi
+    - path: test-output/out/GM24385_fastq/GM24385_1_mitochondrial_reads.fastq.gz.html
+    - path: test-output/out/GM24385_ubam/GM24385_1_mitochondrial_reads.unaligned.bam.html
+    - path: test-output/out/multiqc_report.html
+    - path: test-output/out/GM24385_merged/GM24385_merged.bam
+    - path: test-output/out/GM24385_merged/GM24385_merged.clair3.vcf.gz
+      contains:
+        - "NC_012920.1	263	.	A	G"
+    - path: test-output/out/GM24385_merged/GM24385_merged.deepvariant.vcf.gz
+      should_exist: false
+    - path: test-output/out/GM24385_merged/GM24385_merged.deepvariant.vcf.gz.tbi
+      should_exist: false
+    - path: test-output/out/GM24385_merged/GM24385_1_mitochondrial_reads.fastq.gz.html
+    - path: test-output/out/GM24385_merged/GM24385_1_mitochondrial_reads.unaligned.bam.html
+
+- name: DeepVariant
+  command: >-
+    miniwdl run --cfg tests/miniwdl.cfg -d test-output/.
+    -i tests/integration/ont-calling-deep-variant.json 
+    long-read-variant-calling.wdl 
+  files:
+    - path: test-output/out/GM24385_ubam/GM24385_ubam.bam
+    - path: test-output/out/GM24385_ubam/GM24385_ubam.bam.bai
+    - path: test-output/out/GM24385_ubam/GM24385_ubam.clair3.vcf.gz
+      should_exist: false
+    - path: test-output/out/GM24385_ubam/GM24385_ubam.deepvariant.vcf.gz
+      contains:
+        - "NC_012920.1	263	.	A	G"
+    - path: test-output/out/GM24385_ubam/GM24385_ubam.deepvariant.vcf.gz.tbi
+    - path: test-output/out/GM24385_ubam/GM24385_ubam.clair3.vcf.gz.tbi
+      should_exist: false
+    - path: test-output/out/GM24385_ubam/GM24385_1_mitochondrial_reads.unaligned.bam.html
+    - path: test-output/out/multiqc_report.html
+
+
+- name: ModKit
+  command: >-
+    miniwdl run --cfg tests/miniwdl.cfg -d test-output/.
+    -i tests/integration/ont-calling-modkit.json 
+    long-read-variant-calling.wdl 
+  files:
+    - path: test-output/out/GM24385_ubam/GM24385_ubam.bam
+    - path: test-output/out/GM24385_ubam/GM24385_ubam.bam.bai
+    - path: test-output/out/GM24385_ubam/GM24385_ubam.clair3.vcf.gz
+      should_exist: false
+    - path: test-output/out/GM24385_ubam/GM24385_1_mitochondrial_reads.unaligned.bam.html
+    - path: test-output/out/multiqc_report.html
+    - path: test-output/out/GM24385_ubam/GM24385_ubam.modkit.bed
+    - path: test-output/out/GM24385_ubam/GM24385_ubam.modkit.log
+    

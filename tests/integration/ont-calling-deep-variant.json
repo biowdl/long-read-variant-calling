@@ -1,0 +1,23 @@
+{
+    "LongReadVariantCalling.referenceFasta": "tests/data/NC012920.1.fasta",
+    "LongReadVariantCalling.referenceFastaFai": "tests/data/NC012920.1.fasta.fai",
+    "LongReadVariantCalling.minimap2preset": "map-ont",
+    "LongReadVariantCalling.clair3platform": "ont",
+    "LongReadVariantCalling.clair3builtinmodel": "/usr/local/bin/models/r941_prom_hac_g360+g422",
+    "LongReadVariantCalling.samples": [
+        {
+            "id": "GM24385_ubam",
+            "datasets": [{
+                "readgroup_id": "ubam",
+                "file": "tests/data/GM24385_1_mitochondrial_reads.unaligned.bam"
+            }]
+        }
+    ],
+    "LongReadVariantCalling.minimap2Mapping.memory": "1GiB",
+    "LongReadVariantCalling.minimap2Mapping.cores": 1,
+    "LongReadVariantCalling.sequaliTask.threads": 1,
+    "LongReadVariantCalling.deepVariantTask.memory": "8GiB",
+    "LongReadVariantCalling.deepVariantTask.numShards": 4,
+    "LongReadVariantCalling.runDeepVariant": true,
+    "LongReadVariantCalling.runClair3": false
+  }
