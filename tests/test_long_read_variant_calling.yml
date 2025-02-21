@@ -38,6 +38,17 @@
     - path: test-output/out/GM24385_merged/GM24385_1_mitochondrial_reads.fastq.gz.html
     - path: test-output/out/GM24385_merged/GM24385_1_mitochondrial_reads.unaligned.bam.html
 
+- name: Vep
+  command: >-
+    miniwdl run --cfg tests/miniwdl.cfg -d test-output/.
+    -i tests/integration/ont-calling-vep.json 
+    long-read-variant-calling.wdl 
+  files:
+    - path: test-output/out/GM24385_ubam/GM24385_ubam.bam
+    - path: test-output/out/GM24385_ubam/GM24385_ubam.bam.bai
+    - path: test-output/out/GM24385_ubam/GM24385_ubam.clair3.vcf.gz
+    - path: test-output/out/GM24385_ubam/GM24385_ubam.clair3.vep.vcf.gz
+
 - name: DeepVariant
   command: >-
     miniwdl run --cfg tests/miniwdl.cfg -d test-output/.
@@ -51,6 +62,7 @@
     - path: test-output/out/GM24385_ubam/GM24385_ubam.deepvariant.vcf.gz
       contains:
         - "NC_012920.1	263	.	A	G"
+    - path: test-output/out/GM24385_ubam/GM24385_ubam.deepvariant.vep.vcf.gz
     - path: test-output/out/GM24385_ubam/GM24385_ubam.deepvariant.vcf.gz.tbi
     - path: test-output/out/GM24385_ubam/GM24385_ubam.clair3.vcf.gz.tbi
       should_exist: false

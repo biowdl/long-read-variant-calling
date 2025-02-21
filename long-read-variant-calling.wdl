@@ -29,6 +29,7 @@ import "tasks/chunked-scatter.wdl" as chunkedScatter
 import "tasks/deepvariant.wdl" as deepvariant
 import "tasks/picard.wdl" as picard
 import "tasks/modkit.wdl" as modkit
+import "tasks/vep.wdl" as vep
 
 
 struct SampleDataset {
@@ -54,6 +55,8 @@ workflow LongReadVariantCalling {
         String minimap2preset   
         String outputPrefix = "."
         String deepvariantModelType = "ONT_R104"
+
+        File? vepCacheTar
 
         Boolean runClair3 = true 
         Boolean runDeepVariant = false 
@@ -108,6 +111,14 @@ workflow LongReadVariantCalling {
                     platform = clair3platform,
                     sampleName = sample.id,
             }
+            if (defined(vepCacheTar)) {
+                call vep.Vep as clair3Vep {
+                    input: 
+                        inputFile = clair3Task.vcf,
+                        outputPath = "~{sampleDir}/~{sample.id}.clair3.vep.vcf.gz",
+                        cacheTar = select_first([vepCacheTar]),
+                }
+            }
         }
 
         if (runDeepVariant) {
@@ -137,6 +148,15 @@ workflow LongReadVariantCalling {
                     inputVCFs = deepVariantTask.outputVCF,
                     inputVCFsIndexes = deepVariantTask.outputVCFIndex,
                     outputVcfPath = "~{sampleDir}/~{sample.id}.deepvariant.vcf.gz",
+            }
+
+            if (defined(vepCacheTar)) {
+                call vep.Vep as deepVariantVep {
+                    input: 
+                        inputFile = mergeDeepVariantVCFs.outputVcf,
+                        outputPath = "~{sampleDir}/~{sample.id}.deepvariant.vep.vcf.gz",
+                        cacheTar = select_first([vepCacheTar]),
+                }
             }
 
         }
@@ -171,6 +191,8 @@ workflow LongReadVariantCalling {
         Array[File] bamIndexes = bamIndex 
         Array[File] clair3VcfFiles = select_all(clair3Task.vcf) 
         Array[File] clair3VcfIndexes = select_all(clair3Task.vcfIndex) 
+        Array[File] vepAnnotatedFiles = flatten([select_all(clair3Vep.outputFile), 
+                                                 select_all(deepVariantVep.outputFile)]) 
         Array[File] deepVariantVcfFiles = select_all(mergeDeepVariantVCFs.outputVcf)
         Array[File] deepVariantVcfIndexes = select_all(mergeDeepVariantVCFs.outputVcfIndex)
         Array[File] sequaliReports = flatten(sequaliTask.html)
