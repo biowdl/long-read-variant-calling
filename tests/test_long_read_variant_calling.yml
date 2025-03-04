@@ -10,7 +10,7 @@
     - path: test-output/out/GM24385_ubam/GM24385_ubam.bam.bai
     - path: test-output/out/GM24385_fastq/GM24385_fastq.clair3.vcf.gz
       contains:  # Verified with IGV. This is probably a true variant.
-        - "NC_012920.1	263	.	A	G"
+        - "MT	263	.	A	G"
     - path: test-output/out/GM24385_fastq/GM24385_fastq.clair3.vcf.gz.tbi
     - path: test-output/out/GM24385_fastq/GM24385_fastq.deepvariant.vcf.gz
       should_exist: false
@@ -18,7 +18,7 @@
       should_exist: false
     - path: test-output/out/GM24385_ubam/GM24385_ubam.clair3.vcf.gz
       contains:
-        - "NC_012920.1	263	.	A	G"
+        - "MT	263	.	A	G"
     - path: test-output/out/GM24385_ubam/GM24385_ubam.deepvariant.vcf.gz
       should_exist: false
     - path: test-output/out/GM24385_ubam/GM24385_ubam.deepvariant.vcf.gz.tbi
@@ -30,7 +30,7 @@
     - path: test-output/out/GM24385_merged/GM24385_merged.bam
     - path: test-output/out/GM24385_merged/GM24385_merged.clair3.vcf.gz
       contains:
-        - "NC_012920.1	263	.	A	G"
+        - "MT	263	.	A	G"
     - path: test-output/out/GM24385_merged/GM24385_merged.deepvariant.vcf.gz
       should_exist: false
     - path: test-output/out/GM24385_merged/GM24385_merged.deepvariant.vcf.gz.tbi
@@ -47,7 +47,11 @@
     - path: test-output/out/GM24385_ubam/GM24385_ubam.bam
     - path: test-output/out/GM24385_ubam/GM24385_ubam.bam.bai
     - path: test-output/out/GM24385_ubam/GM24385_ubam.clair3.vcf.gz
+      contains:
+        - "MT	263	.	A	G"
     - path: test-output/out/GM24385_ubam/GM24385_ubam.clair3.vep.vcf.gz
+      contains:
+        - "MT	263	.	A	G"
 
 - name: DeepVariant
   command: >-
@@ -61,7 +65,7 @@
       should_exist: false
     - path: test-output/out/GM24385_ubam/GM24385_ubam.deepvariant.vcf.gz
       contains:
-        - "NC_012920.1	263	.	A	G"
+        - "MT	263	.	A	G"
     - path: test-output/out/GM24385_ubam/GM24385_ubam.deepvariant.vep.vcf.gz
     - path: test-output/out/GM24385_ubam/GM24385_ubam.deepvariant.vcf.gz.tbi
     - path: test-output/out/GM24385_ubam/GM24385_ubam.clair3.vcf.gz.tbi
