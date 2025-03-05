@@ -64,7 +64,7 @@ workflow LongReadVariantCalling {
     }
     
     scatter (sample in samples) {
-            String sampleDir = "~{outputPrefix}/~{sample.id}"
+        String sampleDir = "~{outputPrefix}/~{sample.id}"
 
         scatter (dataset in sample.datasets) {
             String lib_id = select_first([dataset.lib_id, "lib1"])
@@ -87,6 +87,7 @@ workflow LongReadVariantCalling {
                     readgroup = "@RG\\tID:~{readgroupID}\\tLB:~{libraryID}\\tSM:~{sample.id}",
             }
         }
+
         if (length(minimap2Mapping.bam) > 1) {
             call samtools.Merge as mergeBam {
                 input:
@@ -111,6 +112,7 @@ workflow LongReadVariantCalling {
                     platform = clair3platform,
                     sampleName = sample.id,
             }
+
             if (defined(vepCacheTar)) {
                 call vep.Vep as clair3Vep {
                     input: 
@@ -158,7 +160,6 @@ workflow LongReadVariantCalling {
                         cacheTar = select_first([vepCacheTar]),
                 }
             }
-
         }
 
         if (runModKit) {
@@ -171,9 +172,7 @@ workflow LongReadVariantCalling {
                     referenceFastaFai=referenceFastaFai, 
                     logFilePath="~{sampleDir}/~{sample.id}.modkit.log",
             }
-
         }
-
     }
 
     call multiqc.MultiQC {
@@ -205,7 +204,6 @@ workflow LongReadVariantCalling {
                 select_all(clair3Vep.statsHtml), 
                 select_all(deepVariantVep.statsHtml),
             ])
-
     }
 
     parameter_meta {
@@ -219,7 +217,6 @@ workflow LongReadVariantCalling {
         clair3platform: {description: "String describing the clair3 platform", category: "required"}
         minimap2preset: {description: "Minimap2 preset string", category: "required"}
         vepCacheTar: {description: "A TAR file with a VEP cache, when given will cause VEP to run.", category: "common"}
-
         outputPrefix: {description: "Where to place the data.", category: "advanced"}
         deepvariantModelType: {description: "The DeepVariant model to use", category: "advanced"}
 
