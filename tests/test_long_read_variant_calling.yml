@@ -52,6 +52,7 @@
     - path: test-output/out/GM24385_ubam/GM24385_ubam.clair3.vep.vcf.gz
       contains:
         - "MT	263	.	A	G"
+    - path: test-output/out/GM24385_ubam/GM24385_ubam.clair3.vep.vcf.gz_summary.html
 
 - name: DeepVariant
   command: >-

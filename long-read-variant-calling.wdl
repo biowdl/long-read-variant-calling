@@ -181,6 +181,8 @@ workflow LongReadVariantCalling {
             reports = flatten([
                 flatten(sequaliTask.json), 
                 flatten(select_all(deepVariantReports)),
+                select_all(clair3Vep.statsTxt),
+                select_all(deepVariantVep.statsTxt),
             ]),
             dataDir = false,
     }
@@ -199,6 +201,11 @@ workflow LongReadVariantCalling {
         Array[File] modKitBed = select_all(ModKitPileup.out)
         Array[File] modKitBedGraph = flatten(select_all(ModKitPileup.outFiles))
         Array[File] modKitLog = select_all(ModKitPileup.logFile)
+        Array[File] vepHtmlReports = flatten([
+                select_all(clair3Vep.statsHtml), 
+                select_all(deepVariantVep.statsHtml),
+            ])
+
     }
 
     parameter_meta {
