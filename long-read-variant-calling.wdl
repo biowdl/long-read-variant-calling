@@ -180,8 +180,8 @@ workflow LongReadVariantCalling {
             reports = flatten([
                 flatten(sequaliTask.json), 
                 flatten(select_all(deepVariantReports)),
-                select_all(clair3Vep.statsTxt),
-                select_all(deepVariantVep.statsTxt),
+                select_all(clair3Vep.statsHtml),
+                select_all(deepVariantVep.statsHtml),
             ]),
             dataDir = false,
     }
