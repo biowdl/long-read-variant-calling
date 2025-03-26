@@ -1,8 +1,11 @@
 - name: Default
   command: >-
-    miniwdl run --cfg tests/miniwdl.cfg -d test-output/.
+    miniwdl run --cfg tests/miniwdl.cfg -d test-output/. -v
     -i tests/integration/ont-calling.json 
     long-read-variant-calling.wdl 
+  stderr:
+    contains:
+      - "/usr/local/bin/models/r941_prom_sup_g5014"
   files:
     - path: test-output/out/GM24385_fastq/GM24385_fastq.bam
     - path: test-output/out/GM24385_fastq/GM24385_fastq.bam.bai

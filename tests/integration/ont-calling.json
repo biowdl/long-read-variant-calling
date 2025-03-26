@@ -30,7 +30,8 @@
                     "readgroup_id": "fastq",
                     "file": "tests/data/GM24385_1_mitochondrial_reads.fastq.gz"
                 }
-            ]
+            ],
+            "clair3builtinmodel": "/usr/local/bin/models/r941_prom_sup_g5014"
         }
     ],
     "LongReadVariantCalling.clair3Task.memory": "1GiB",

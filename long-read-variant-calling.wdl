@@ -41,6 +41,8 @@ struct SampleDataset {
 struct Sample {
     String id
     Array[SampleDataset]+ datasets
+    File? clair3modelTar
+    String? clair3builtinmodel
 }
 
 
@@ -107,8 +109,8 @@ workflow LongReadVariantCalling {
                     bamIndex = bamIndex,
                     referenceFasta = referenceFasta,
                     referenceFastaFai = referenceFastaFai,
-                    modelTar = clair3modelTar,
-                    builtinModel = clair3builtinmodel,
+                    modelTar = if defined(sample.clair3modelTar) then sample.clair3modelTar else clair3modelTar,
+                    builtinModel = if defined(sample.clair3builtinmodel) then sample.clair3builtinmodel else clair3builtinmodel,
                     platform = clair3platform,
                     sampleName = sample.id,
             }
