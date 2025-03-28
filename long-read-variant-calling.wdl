@@ -43,6 +43,8 @@ struct Sample {
     Array[SampleDataset]+ datasets
     File? clair3modelTar
     String? clair3builtinmodel
+    String? clair3platform
+    String? deepvariantModelType
 }
 
 
@@ -53,7 +55,7 @@ workflow LongReadVariantCalling {
         File referenceFastaFai
         File? clair3modelTar
         String? clair3builtinmodel
-        String clair3platform
+        String clair3platform = "ont"
         String minimap2preset   
         String outputPrefix = "."
         String deepvariantModelType = "ONT_R104"
@@ -111,7 +113,7 @@ workflow LongReadVariantCalling {
                     referenceFastaFai = referenceFastaFai,
                     modelTar = if defined(sample.clair3modelTar) then sample.clair3modelTar else clair3modelTar,
                     builtinModel = if defined(sample.clair3builtinmodel) then sample.clair3builtinmodel else clair3builtinmodel,
-                    platform = clair3platform,
+                    platform = select_first([sample.clair3platform, clair3platform]),
                     sampleName = sample.id,
             }
 
