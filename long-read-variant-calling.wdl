@@ -54,8 +54,8 @@ workflow LongReadVariantCalling {
         File referenceFastaFai
         File? clair3modelTar
         String? clair3builtinmodel
-        String clair3platform
-        String minimap2preset   
+        String clair3platform = "ont"
+        String minimap2preset = "map-ont"
         String outputPrefix = "."
         String deepvariantModelType = "ONT_R104"
 
