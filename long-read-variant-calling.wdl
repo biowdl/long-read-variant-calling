@@ -43,6 +43,7 @@ struct Sample {
     Array[SampleDataset]+ datasets
     File? clair3modelTar
     String? clair3builtinmodel
+    String? deepvariantModelType
 }
 
 
@@ -140,7 +141,7 @@ workflow LongReadVariantCalling {
                         referenceFastaIndex = referenceFastaFai,
                         inputBam = bam, 
                         inputBamIndex = bamIndex,
-                        modelType = deepvariantModelType,
+                        modelType = select_first([sample.deepvariantModelType, deepvariantModelType]),
                         outputVcf = "~{sample.id}.~{basename(region)}.vcf.gz",
                         regions = region,
                 }
