@@ -25,6 +25,7 @@ import "tasks/samtools.wdl" as samtools
 import "tasks/minimap2.wdl" as minimap2 
 import "tasks/clair3.wdl" as clair3 
 import "tasks/multiqc.wdl" as multiqc 
+import "tasks/pbmm2.wdl" as pbmm2
 import "tasks/chunked-scatter.wdl" as chunkedScatter
 import "tasks/deepvariant.wdl" as deepvariant
 import "tasks/picard.wdl" as picard
@@ -55,12 +56,15 @@ workflow LongReadVariantCalling {
         File? clair3modelTar
         String? clair3builtinmodel
         String clair3platform = "ont"
+        String pbmm2Preset = "HIFI"
         String minimap2preset = "map-ont"
         String outputPrefix = "."
         String deepvariantModelType = "ONT_R104"
 
+
         File? vepCacheTar
 
+        Boolean usePbmm2 = false
         Boolean runClair3 = true 
         Boolean runDeepVariant = false 
         Boolean runModKit = false
@@ -81,26 +85,40 @@ workflow LongReadVariantCalling {
             }
 
             String bamPrefix = if length(sample.datasets) == 1 then sample.id else readgroupID
-            call minimap2.Mapping as minimap2Mapping {
-                input:
-                    presetOption = minimap2preset,
-                    outputPrefix = "~{sampleDir}/~{bamPrefix}",
-                    referenceFile = referenceFasta,
-                    queryFile = dataset.file,
-                    readgroup = "@RG\\tID:~{readgroupID}\\tLB:~{libraryID}\\tSM:~{sample.id}",
+            if (!usePbmm2) {
+                call minimap2.Mapping as minimap2Mapping {
+                    input:
+                        presetOption = minimap2preset,
+                        outputPrefix = "~{sampleDir}/~{bamPrefix}",
+                        referenceFile = referenceFasta,
+                        queryFile = dataset.file,
+                        readgroup = "@RG\\tID:~{readgroupID}\\tLB:~{libraryID}\\tSM:~{sample.id}",
+                }
             }
+            if (usePbmm2) {
+                call pbmm2.Mapping as PacBioMapping {
+                    input:
+                        presetOption = pbmm2Preset,
+                        sample = sample.id,
+                        referenceMMI = referenceFasta,
+                        queryFile = dataset.file,
+                        sort = true, 
+                }
+            }
+            File sampleBamFiles = select_first([minimap2Mapping.bam, PacBioMapping.outputAlignmentFile])
+            File sampleBamIndexes = select_first([minimap2Mapping.bamIndex, PacBioMapping.outputIndexFile])
         }
 
-        if (length(minimap2Mapping.bam) > 1) {
+        if (length(sampleBamFiles) > 1) {
             call samtools.Merge as mergeBam {
                 input:
-                    bamFiles=minimap2Mapping.bam,
+                    bamFiles=sampleBamFiles,
                     outputBamPath="~{sampleDir}/~{sample.id}.bam",
             }
         }
 
-        File bam = select_first([mergeBam.outputBam, minimap2Mapping.bam[0]])
-        File bamIndex = select_first([mergeBam.outputBamIndex, minimap2Mapping.bamIndex[0]])
+        File bam = select_first([mergeBam.outputBam, sampleBamFiles[0]])
+        File bamIndex = select_first([mergeBam.outputBamIndex, sampleBamIndexes[0]])
 
         if (runClair3) {
             call clair3.Clair3 as clair3Task {
