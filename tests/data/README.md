@@ -24,9 +24,11 @@ More information about the dataset can be found on the [NCBI ftp site](
 https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/giab/data/AshkenazimTrio/HG002_NA24385_son/PacBio_HiFi-Revio_20231031/README_HG002-PacBio-Revio.md)
 
 HG002_PacBio-HiFi-Revio_20231031_48x_GRCh38-GIABv3.bam was used to determine which
-reads map to the mitochondrial genome. The IDS are in: ...
+reads map to the mitochondrial genome. The unaligned reads are generated with:
 
-
+```
+samtools view -u -M HG002_PacBio-HiFi-Revio_20231031_48x_GRCh38-GIABv3.bam chrM | samtools reset | samtools view -b --subsample 0.1 -o pacbio_revio_hifi_mitochondrial_reads.unaligned.bam
+ ```
 
 ## PacBio reads license:
 
