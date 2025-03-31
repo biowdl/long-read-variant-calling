@@ -11,6 +11,7 @@ that users understand how the changes affect the new version.
 
 version 0.1.0-dev
 ---------------------------
++ Add option to use pbmm2 mapper for PacBio reads.
 + Create a long-read variant calling pipeline with clair3. DeepVariant and
   modkit running is optional.
 
