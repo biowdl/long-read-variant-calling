@@ -15,8 +15,8 @@
     "LongReadVariantCalling.clair3Task.memory": "1GiB",
     "LongReadVariantCalling.clair3Task.threads": 1,
     "LongReadVariantCalling.clair3Task.includeAllCtgs": true,
-    "LongReadVariantCalling.PacBioMapping.cores": 1,
-    "LongReadVariantCalling.PacBioMapping.memory": "1GiB",
+    "LongReadVariantCalling.pacBioMapping.cores": 1,
+    "LongReadVariantCalling.pacBioMapping.memory": "1GiB",
     "LongReadVariantCalling.sequaliTask.threads": 1,
     "LongReadVariantCalling.runDeepVariant": false
   }

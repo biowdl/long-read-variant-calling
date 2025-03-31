@@ -96,7 +96,7 @@ workflow LongReadVariantCalling {
                 }
             }
             if (usePbmm2) {
-                call pbmm2.Mapping as PacBioMapping {
+                call pbmm2.Mapping as pacBioMapping {
                     input:
                         presetOption = pbmm2Preset,
                         sample = sample.id,
@@ -106,8 +106,8 @@ workflow LongReadVariantCalling {
                         sort = true, 
                 }
             }
-            File sampleBamFiles = select_first([minimap2Mapping.bam, PacBioMapping.outputAlignmentFile])
-            File sampleBamIndexes = select_first([minimap2Mapping.bamIndex, PacBioMapping.outputIndexFile])
+            File sampleBamFiles = select_first([minimap2Mapping.bam, pacBioMapping.outputAlignmentFile])
+            File sampleBamIndexes = select_first([minimap2Mapping.bamIndex, pacBioMapping.outputIndexFile])
         }
 
         if (length(sampleBamFiles) > 1) {
