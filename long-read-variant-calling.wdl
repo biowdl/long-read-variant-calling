@@ -245,6 +245,8 @@ workflow LongReadVariantCalling {
         runClair3: {description: "Whether to run clair3.", category: "common"} 
         runDeepVariant: {description: "Whether to run DeepVariant", category: "common"}
         runModKit: {description: "Whether to run ModKit", category: "common"}
+        usePbmm2: {description: "Use pbmm2 instead of minimap2 for mapping.", category: "common"}
+        pbmm2Preset: {description: "Pbmm2 preset for mapping reads.", category: "common"}
 
         # output
         multiqcReport: {description: "The MultiQC report."}
