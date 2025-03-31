@@ -1,8 +1,11 @@
 - name: Default
   command: >-
-    miniwdl run --cfg tests/miniwdl.cfg -d test-output/.
+    miniwdl run --cfg tests/miniwdl.cfg -d test-output/. -v
     -i tests/integration/ont-calling.json 
     long-read-variant-calling.wdl 
+  stderr:
+    contains:
+      - "/usr/local/bin/models/r941_prom_sup_g5014"
   files:
     - path: test-output/out/GM24385_fastq/GM24385_fastq.bam
     - path: test-output/out/GM24385_fastq/GM24385_fastq.bam.bai
@@ -74,12 +77,38 @@
     - path: test-output/out/GM24385_ubam/GM24385_1_mitochondrial_reads.unaligned.bam.html
     - path: test-output/out/multiqc_report.html
 
+- name: PacBio
+  command: >-
+    miniwdl run --cfg tests/miniwdl.cfg -d test-output/.
+    -i tests/integration/pacbio-calling.json 
+    long-read-variant-calling.wdl 
+  stderr:
+    contains:
+      - "pacBioMapping"  # Check pbmm2 is used
+    must_not_contain:
+      - "minimap2Mapping"
+  files:
+    - path: test-output/out/pacbio_revio_hifi/pacbio_revio_hifi.bam
+    - path: test-output/out/pacbio_revio_hifi/pacbio_revio_hifi.bam.bai
+    - path: test-output/out/pacbio_revio_hifi/pacbio_revio_hifi.clair3.vcf.gz
+      contains:
+        - "MT	263	.	A	G"
+    - path: test-output/out/pacbio_revio_hifi/pacbio_revio_hifi.clair3.vcf.gz.tbi
+    - path: test-output/out/pacbio_revio_hifi/pacbio_revio_hifi_mitochondrial_reads.unaligned.bam.html
+    - path: test-output/out/multiqc_report.html
+
 
 - name: ModKit
   command: >-
     miniwdl run --cfg tests/miniwdl.cfg -d test-output/.
     -i tests/integration/ont-calling-modkit.json 
     long-read-variant-calling.wdl 
+  stderr:
+    # Not tested in default because -v flag in miniwdl run visits all nodes.
+    contains:
+      - "minimap2Mapping"  # Check minimap2 is used 
+    must_not_contain:
+      - "pacBioMapping"
   files:
     - path: test-output/out/GM24385_ubam/GM24385_ubam.bam
     - path: test-output/out/GM24385_ubam/GM24385_ubam.bam.bai

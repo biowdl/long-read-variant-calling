@@ -1,22 +1,22 @@
 {
     "LongReadVariantCalling.referenceFasta": "tests/data/NC012920.1.fasta",
     "LongReadVariantCalling.referenceFastaFai": "tests/data/NC012920.1.fasta.fai",
-    "LongReadVariantCalling.clair3builtinmodel": "/usr/local/bin/models/r941_prom_hac_g360+g422",
+    "LongReadVariantCalling.clair3builtinmodel": "/usr/local/bin/models/hifi_revio",
+    "LongReadVariantCalling.usePbmm2": true,
     "LongReadVariantCalling.samples": [
         {
-            "id": "GM24385_ubam",
+            "id": "pacbio_revio_hifi", 
             "datasets": [{
                 "readgroup_id": "ubam",
-                "file": "tests/data/GM24385_1_mitochondrial_reads.unaligned.bam"
+                "file": "tests/data/pacbio_revio_hifi_mitochondrial_reads.unaligned.bam"
             }]
         }
     ],
     "LongReadVariantCalling.clair3Task.memory": "1GiB",
     "LongReadVariantCalling.clair3Task.threads": 1,
     "LongReadVariantCalling.clair3Task.includeAllCtgs": true,
-    "LongReadVariantCalling.minimap2Mapping.memory": "1GiB",
-    "LongReadVariantCalling.minimap2Mapping.cores": 1,
+    "LongReadVariantCalling.pacBioMapping.cores": 1,
+    "LongReadVariantCalling.pacBioMapping.memory": "1GiB",
     "LongReadVariantCalling.sequaliTask.threads": 1,
-    "LongReadVariantCalling.vepCacheTar": "tests/data/homo_sapiens_vep_113_GRCh38.tar.gz",
-    "LongReadVariantCalling.clair3Vep.dockerImage": "quay.io/biocontainers/ensembl-vep:113.3--pl5321h2a3209d_0"
+    "LongReadVariantCalling.runDeepVariant": false
   }

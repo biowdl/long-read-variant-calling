@@ -1,8 +1,6 @@
 {
     "LongReadVariantCalling.referenceFasta": "tests/data/NC012920.1.fasta",
     "LongReadVariantCalling.referenceFastaFai": "tests/data/NC012920.1.fasta.fai",
-    "LongReadVariantCalling.minimap2preset": "map-ont",
-    "LongReadVariantCalling.clair3platform": "ont",
     "LongReadVariantCalling.clair3builtinmodel": "/usr/local/bin/models/r941_prom_hac_g360+g422",
     "LongReadVariantCalling.samples": [
         {

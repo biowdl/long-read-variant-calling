@@ -25,6 +25,7 @@ import "tasks/samtools.wdl" as samtools
 import "tasks/minimap2.wdl" as minimap2 
 import "tasks/clair3.wdl" as clair3 
 import "tasks/multiqc.wdl" as multiqc 
+import "tasks/pbmm2.wdl" as pbmm2
 import "tasks/chunked-scatter.wdl" as chunkedScatter
 import "tasks/deepvariant.wdl" as deepvariant
 import "tasks/picard.wdl" as picard
@@ -41,6 +42,9 @@ struct SampleDataset {
 struct Sample {
     String id
     Array[SampleDataset]+ datasets
+    File? clair3modelTar
+    String? clair3builtinmodel
+    String? deepvariantModelType
 }
 
 
@@ -51,13 +55,16 @@ workflow LongReadVariantCalling {
         File referenceFastaFai
         File? clair3modelTar
         String? clair3builtinmodel
-        String clair3platform
-        String minimap2preset   
+        String clair3platform = "ont"
+        String pbmm2Preset = "HIFI"
+        String minimap2preset = "map-ont"
         String outputPrefix = "."
         String deepvariantModelType = "ONT_R104"
 
+
         File? vepCacheTar
 
+        Boolean usePbmm2 = false
         Boolean runClair3 = true 
         Boolean runDeepVariant = false 
         Boolean runModKit = false
@@ -78,26 +85,41 @@ workflow LongReadVariantCalling {
             }
 
             String bamPrefix = if length(sample.datasets) == 1 then sample.id else readgroupID
-            call minimap2.Mapping as minimap2Mapping {
-                input:
-                    presetOption = minimap2preset,
-                    outputPrefix = "~{sampleDir}/~{bamPrefix}",
-                    referenceFile = referenceFasta,
-                    queryFile = dataset.file,
-                    readgroup = "@RG\\tID:~{readgroupID}\\tLB:~{libraryID}\\tSM:~{sample.id}",
+            if (!usePbmm2) {
+                call minimap2.Mapping as minimap2Mapping {
+                    input:
+                        presetOption = minimap2preset,
+                        outputPrefix = "~{sampleDir}/~{bamPrefix}",
+                        referenceFile = referenceFasta,
+                        queryFile = dataset.file,
+                        readgroup = "@RG\\tID:~{readgroupID}\\tLB:~{libraryID}\\tSM:~{sample.id}",
+                }
             }
+            if (usePbmm2) {
+                call pbmm2.Mapping as pacBioMapping {
+                    input:
+                        presetOption = pbmm2Preset,
+                        sample = sample.id,
+                        outputPrefix = "~{sampleDir}/~{bamPrefix}",
+                        referenceMMI = referenceFasta,
+                        queryFile = dataset.file,
+                        sort = true, 
+                }
+            }
+            File sampleBamFiles = select_first([minimap2Mapping.bam, pacBioMapping.outputAlignmentFile])
+            File sampleBamIndexes = select_first([minimap2Mapping.bamIndex, pacBioMapping.outputIndexFile])
         }
 
-        if (length(minimap2Mapping.bam) > 1) {
+        if (length(sampleBamFiles) > 1) {
             call samtools.Merge as mergeBam {
                 input:
-                    bamFiles=minimap2Mapping.bam,
+                    bamFiles=sampleBamFiles,
                     outputBamPath="~{sampleDir}/~{sample.id}.bam",
             }
         }
 
-        File bam = select_first([mergeBam.outputBam, minimap2Mapping.bam[0]])
-        File bamIndex = select_first([mergeBam.outputBamIndex, minimap2Mapping.bamIndex[0]])
+        File bam = select_first([mergeBam.outputBam, sampleBamFiles[0]])
+        File bamIndex = select_first([mergeBam.outputBamIndex, sampleBamIndexes[0]])
 
         if (runClair3) {
             call clair3.Clair3 as clair3Task {
@@ -107,8 +129,8 @@ workflow LongReadVariantCalling {
                     bamIndex = bamIndex,
                     referenceFasta = referenceFasta,
                     referenceFastaFai = referenceFastaFai,
-                    modelTar = clair3modelTar,
-                    builtinModel = clair3builtinmodel,
+                    modelTar = if defined(sample.clair3modelTar) then sample.clair3modelTar else clair3modelTar,
+                    builtinModel = if defined(sample.clair3builtinmodel) then sample.clair3builtinmodel else clair3builtinmodel,
                     platform = clair3platform,
                     sampleName = sample.id,
             }
@@ -138,7 +160,7 @@ workflow LongReadVariantCalling {
                         referenceFastaIndex = referenceFastaFai,
                         inputBam = bam, 
                         inputBamIndex = bamIndex,
-                        modelType = deepvariantModelType,
+                        modelType = select_first([sample.deepvariantModelType, deepvariantModelType]),
                         outputVcf = "~{sample.id}.~{basename(region)}.vcf.gz",
                         regions = region,
                 }
@@ -214,8 +236,8 @@ workflow LongReadVariantCalling {
         
         clair3modelTar: {description: "TAR file with clair3 model if no builtin model is used", category: "common"}
         clair3builtinmodel: {description: "String describing a builtin model if no TAR file is used.", category: "common"}
-        clair3platform: {description: "String describing the clair3 platform", category: "required"}
-        minimap2preset: {description: "Minimap2 preset string", category: "required"}
+        clair3platform: {description: "String describing the clair3 platform", category: "common"}
+        minimap2preset: {description: "Minimap2 preset string", category: "common"}
         vepCacheTar: {description: "A TAR file with a VEP cache, when given will cause VEP to run.", category: "common"}
         outputPrefix: {description: "Where to place the data.", category: "advanced"}
         deepvariantModelType: {description: "The DeepVariant model to use", category: "advanced"}
@@ -223,6 +245,8 @@ workflow LongReadVariantCalling {
         runClair3: {description: "Whether to run clair3.", category: "common"} 
         runDeepVariant: {description: "Whether to run DeepVariant", category: "common"}
         runModKit: {description: "Whether to run ModKit", category: "common"}
+        usePbmm2: {description: "Use pbmm2 instead of minimap2 for mapping.", category: "common"}
+        pbmm2Preset: {description: "Pbmm2 preset for mapping reads.", category: "common"}
 
         # output
         multiqcReport: {description: "The MultiQC report."}
