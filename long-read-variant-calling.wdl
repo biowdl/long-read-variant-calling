@@ -236,8 +236,8 @@ workflow LongReadVariantCalling {
         
         clair3modelTar: {description: "TAR file with clair3 model if no builtin model is used", category: "common"}
         clair3builtinmodel: {description: "String describing a builtin model if no TAR file is used.", category: "common"}
-        clair3platform: {description: "String describing the clair3 platform", category: "required"}
-        minimap2preset: {description: "Minimap2 preset string", category: "required"}
+        clair3platform: {description: "String describing the clair3 platform", category: "common"}
+        minimap2preset: {description: "Minimap2 preset string", category: "common"}
         vepCacheTar: {description: "A TAR file with a VEP cache, when given will cause VEP to run.", category: "common"}
         outputPrefix: {description: "Where to place the data.", category: "advanced"}
         deepvariantModelType: {description: "The DeepVariant model to use", category: "advanced"}
