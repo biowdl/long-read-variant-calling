@@ -40,6 +40,12 @@
       should_exist: false
     - path: test-output/out/GM24385_merged/GM24385_1_mitochondrial_reads.fastq.gz.html
     - path: test-output/out/GM24385_merged/GM24385_1_mitochondrial_reads.unaligned.bam.html
+    - path: test-output/out/GM24385_fastq/GM24385_fastq.bam.mosdepth.global.dist.txt
+    - path: test-output/out/GM24385_fastq/GM24385_fastq.bam.mosdepth.summary.txt
+    - path: test-output/out/GM24385_ubam/GM24385_ubam.bam.mosdepth.global.dist.txt
+    - path: test-output/out/GM24385_ubam/GM24385_ubam.bam.mosdepth.summary.txt
+    - path: test-output/out/GM24385_merged/GM24385_merged.bam.mosdepth.global.dist.txt
+    - path: test-output/out/GM24385_merged/GM24385_merged.bam.mosdepth.summary.txt
 
 - name: Vep
   command: >-
