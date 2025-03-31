@@ -77,6 +77,21 @@
     - path: test-output/out/GM24385_ubam/GM24385_1_mitochondrial_reads.unaligned.bam.html
     - path: test-output/out/multiqc_report.html
 
+- name: PacBio
+  command: >-
+    miniwdl run --cfg tests/miniwdl.cfg -d test-output/.
+    -i tests/integration/pacbio-calling.json 
+    long-read-variant-calling.wdl 
+  files:
+    - path: test-output/out/pacbio_revio_hifi/pacbio_revio_hifi.bam
+    - path: test-output/out/pacbio_revio_hifi/pacbio_revio_hifi.bam.bai
+    - path: test-output/out/pacbio_revio_hifi/pacbio_revio_hifi.clair3.vcf.gz
+      contains:
+        - "MT	263	.	A	G"
+    - path: test-output/out/pacbio_revio_hifi/pacbio_revio_hifi.clair3.vcf.gz.tbi
+    - path: test-output/out/pacbio_revio_hifi/pacbio_revio_hifi_mitochondrial_reads.unaligned.bam.html
+    - path: test-output/out/multiqc_report.html
+
 
 - name: ModKit
   command: >-

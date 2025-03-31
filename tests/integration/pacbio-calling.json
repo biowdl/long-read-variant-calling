@@ -1,0 +1,22 @@
+{
+    "LongReadVariantCalling.referenceFasta": "tests/data/NC012920.1.fasta",
+    "LongReadVariantCalling.referenceFastaFai": "tests/data/NC012920.1.fasta.fai",
+    "LongReadVariantCalling.clair3builtinmodel": "/usr/local/bin/models/hifi_revio",
+    "LongReadVariantCalling.usePbmm2": true,
+    "LongReadVariantCalling.samples": [
+        {
+            "id": "pacbio_revio_hifi", 
+            "datasets": [{
+                "readgroup_id": "ubam",
+                "file": "tests/data/pacbio_revio_hifi_mitochondrial_reads.unaligned.bam"
+            }]
+        }
+    ],
+    "LongReadVariantCalling.clair3Task.memory": "1GiB",
+    "LongReadVariantCalling.clair3Task.threads": 1,
+    "LongReadVariantCalling.clair3Task.includeAllCtgs": true,
+    "LongReadVariantCalling.PacBioMapping.cores": 1,
+    "LongReadVariantCalling.PacBioMapping.memory": "1GiB",
+    "LongReadVariantCalling.sequaliTask.threads": 1,
+    "LongReadVariantCalling.runDeepVariant": false
+  }

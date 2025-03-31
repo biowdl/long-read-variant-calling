@@ -100,6 +100,7 @@ workflow LongReadVariantCalling {
                     input:
                         presetOption = pbmm2Preset,
                         sample = sample.id,
+                        outputPrefix = "~{sampleDir}/~{bamPrefix}",
                         referenceMMI = referenceFasta,
                         queryFile = dataset.file,
                         sort = true, 
