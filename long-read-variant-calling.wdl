@@ -31,6 +31,7 @@ import "tasks/deepvariant.wdl" as deepvariant
 import "tasks/picard.wdl" as picard
 import "tasks/modkit.wdl" as modkit
 import "tasks/vep.wdl" as vep
+import "tasks/mosdepth.wdl" as mosdepth
 
 
 struct SampleDataset {
@@ -121,6 +122,14 @@ workflow LongReadVariantCalling {
         File bam = select_first([mergeBam.outputBam, sampleBamFiles[0]])
         File bamIndex = select_first([mergeBam.outputBamIndex, sampleBamIndexes[0]])
 
+        call mosdepth.Mosdepth as mosdepthTask {
+            input:
+                bam = bam,
+                bamIndex = bamIndex,
+                prefix = "~{sampleDir}/~{sample.id}.bam",
+                noPerBase = true, # Let's not waste time with this. 
+        }
+
         if (runClair3) {
             call clair3.Clair3 as clair3Task {
                 input: 
@@ -204,6 +213,10 @@ workflow LongReadVariantCalling {
                 flatten(select_all(deepVariantReports)),
                 select_all(clair3Vep.statsHtml),
                 select_all(deepVariantVep.statsHtml),
+                mosdepthTask.globalDist,
+                mosdepthTask.summary,
+                select_all(mosdepthTask.perBaseBed),
+                select_all(mosdepthTask.regionsBed),
             ]),
             dataDir = false,
     }
@@ -226,6 +239,10 @@ workflow LongReadVariantCalling {
                 select_all(clair3Vep.statsHtml), 
                 select_all(deepVariantVep.statsHtml),
             ])
+        Array[File] mosdepthSummary = mosdepthTask.summary 
+        Array[File] mosdepthGlobalDist = mosdepthTask.globalDist
+        Array[File] mosdepthPerBaseBed = select_all(mosdepthTask.perBaseBed)
+        Array[File] mosdepthRegionsBed = select_all(mosdepthTask.regionsBed)
     }
 
     parameter_meta {
