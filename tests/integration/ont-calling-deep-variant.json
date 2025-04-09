@@ -18,6 +18,5 @@
     "LongReadVariantCalling.deepVariantTask.numShards": 4,
     "LongReadVariantCalling.runDeepVariant": true,
     "LongReadVariantCalling.runClair3": false,
-    "LongReadVariantCalling.vepCacheTar": "tests/data/homo_sapiens_vep_113_GRCh38.tar.gz",
-    "LongReadVariantCalling.deepVariantVep.dockerImage": "quay.io/biocontainers/ensembl-vep:113.3--pl5321h2a3209d_0"
+    "LongReadVariantCalling.vepCacheTar": "tests/data/homo_sapiens_vep_113_GRCh38.tar.gz"
   }

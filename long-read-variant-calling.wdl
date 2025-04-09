@@ -69,6 +69,24 @@ workflow LongReadVariantCalling {
         Boolean runClair3 = true 
         Boolean runDeepVariant = false 
         Boolean runModKit = false
+
+        Map[String, String] dockerImages = {
+            "sequali": "quay.io/biocontainers/sequali:0.12.0--py312hf67a6ed_0",
+            # Minimap 2.28 samtools 1.20
+            "minimap2": "quay.io/biocontainers/mulled-v2-66534bcbb7031a148b13e2ad42583020b9cd25c4:3161f532a5ea6f1dec9be5667c9efc2afdac6104-0",
+            "pbmm2": "quay.io/biocontainers/pbmm2:1.17.0--h9ee0642_0",
+            "samtools": "quay.io/biocontainers/samtools:1.21--h96c455f_1",
+            "mosdepth": "quay.io/biocontainers/mosdepth:0.3.10--h4e814b3_1",
+            "clair3": "quay.io/biocontainers/clair3:1.0.11--py39hd649744_0",
+            # Version 1.8.0 has a bug.
+            # https://github.com/google/deepvariant/issues/912
+            "deepvariant": "google/deepvariant:1.6.1",
+            "vep": "quay.io/biocontainers/ensembl-vep:113.3--pl5321h2a3209d_0",
+            "scatter-regions": "quay.io/biocontainers/chunked-scatter:1.0.0--py_0",
+            "picard": "quay.io/biocontainers/picard:3.3.0--hdfd78af_0",
+            "modkit": "quay.io/biocontainers/ont-modkit:0.4.3--hcdda2d0_0",
+            "multiqc": "quay.io/biocontainers/multiqc:1.28--pyhdfd78af_0",
+        }
     }
     
     scatter (sample in samples) {
@@ -83,6 +101,7 @@ workflow LongReadVariantCalling {
                 input: 
                     reads = dataset.file,
                     outDir = sampleDir,
+                    dockerImage = dockerImages["sequali"],
             }
 
             String bamPrefix = if length(sample.datasets) == 1 then sample.id else readgroupID
@@ -94,6 +113,7 @@ workflow LongReadVariantCalling {
                         referenceFile = referenceFasta,
                         queryFile = dataset.file,
                         readgroup = "@RG\\tID:~{readgroupID}\\tLB:~{libraryID}\\tSM:~{sample.id}",
+                        dockerImage = dockerImages["minimap2"],
                 }
             }
             if (usePbmm2) {
@@ -104,7 +124,8 @@ workflow LongReadVariantCalling {
                         outputPrefix = "~{sampleDir}/~{bamPrefix}",
                         referenceMMI = referenceFasta,
                         queryFile = dataset.file,
-                        sort = true, 
+                        unmapped = true,  # For archive purposes all reads should be in the BAM file.
+                        dockerImage = dockerImages["pbmm2"],
                 }
             }
             File sampleBamFiles = select_first([minimap2Mapping.bam, pacBioMapping.outputAlignmentFile])
@@ -116,6 +137,7 @@ workflow LongReadVariantCalling {
                 input:
                     bamFiles=sampleBamFiles,
                     outputBamPath="~{sampleDir}/~{sample.id}.bam",
+                    dockerImage = dockerImages["samtools"]
             }
         }
 
@@ -128,6 +150,7 @@ workflow LongReadVariantCalling {
                 bamIndex = bamIndex,
                 prefix = "~{sampleDir}/~{sample.id}.bam",
                 noPerBase = true, # Let's not waste time with this. 
+                dockerImage = dockerImages["mosdepth"],
         }
 
         if (runClair3) {
@@ -142,6 +165,7 @@ workflow LongReadVariantCalling {
                     builtinModel = if defined(sample.clair3builtinmodel) then sample.clair3builtinmodel else clair3builtinmodel,
                     platform = clair3platform,
                     sampleName = sample.id,
+                    dockerImage = dockerImages["clair3"],
             }
 
             if (defined(vepCacheTar)) {
@@ -150,6 +174,7 @@ workflow LongReadVariantCalling {
                         inputFile = clair3Task.vcf,
                         outputPath = "~{sampleDir}/~{sample.id}.clair3.vep.vcf.gz",
                         cacheTar = select_first([vepCacheTar]),
+                        dockerImage = dockerImages["vep"],
                 }
             }
         }
@@ -160,6 +185,7 @@ workflow LongReadVariantCalling {
                     inputFile = referenceFastaFai,
                     scatterSizeMillions = 100,
                     splitContigs = true,
+                    dockerImage = dockerImages["scatter-regions"],
             }
 
             scatter (region in scatterList.scatters) {
@@ -172,6 +198,7 @@ workflow LongReadVariantCalling {
                         modelType = select_first([sample.deepvariantModelType, deepvariantModelType]),
                         outputVcf = "~{sample.id}.~{basename(region)}.vcf.gz",
                         regions = region,
+                        dockerImage = dockerImages["deepvariant"],
                 }
             }
             Array[File] deepVariantReports = flatten(deepVariantTask.outputVCFStatsReport)
@@ -181,6 +208,7 @@ workflow LongReadVariantCalling {
                     inputVCFs = deepVariantTask.outputVCF,
                     inputVCFsIndexes = deepVariantTask.outputVCFIndex,
                     outputVcfPath = "~{sampleDir}/~{sample.id}.deepvariant.vcf.gz",
+                    dockerImage = dockerImages["picard"],
             }
 
             if (defined(vepCacheTar)) {
@@ -189,6 +217,7 @@ workflow LongReadVariantCalling {
                         inputFile = mergeDeepVariantVCFs.outputVcf,
                         outputPath = "~{sampleDir}/~{sample.id}.deepvariant.vep.vcf.gz",
                         cacheTar = select_first([vepCacheTar]),
+                        dockerImage = dockerImages["vep"],
                 }
             }
         }
@@ -202,6 +231,7 @@ workflow LongReadVariantCalling {
                     referenceFasta=referenceFasta,
                     referenceFastaFai=referenceFastaFai, 
                     logFilePath="~{sampleDir}/~{sample.id}.modkit.log",
+                    dockerImage = dockerImages["modkit"],
             }
         }
     }
@@ -219,6 +249,7 @@ workflow LongReadVariantCalling {
                 select_all(mosdepthTask.regionsBed),
             ]),
             dataDir = false,
+            dockerImage = dockerImages["multiqc"]
     }
 
     output {
