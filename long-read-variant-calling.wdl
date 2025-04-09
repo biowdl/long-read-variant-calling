@@ -278,6 +278,8 @@ workflow LongReadVariantCalling {
 
     parameter_meta {
         # input 
+        dockerImages: {description: "specify which docker images should be used for running this pipeline",
+                       category: "advanced" }
         samples: {description: "The samples with metadata and files.", category: "required"}
         referenceFasta: {description: "The reference FASTA file.", category: "required"}
         referenceFastaFai: {description: "The reference FASTA index file.", category: "required"}
@@ -311,5 +313,9 @@ workflow LongReadVariantCalling {
         vepAnnotatedFiles: {description: "VCF file annotated by VEP."}
         vepHtmlReports: {description: "The VEP HTML reports."}
         modKitBedGraph: {description: "BedGraph output files for ModKit."}
+        mosdepthSummary: {description: "Mosdepth summary files."}
+        mosdepthGlobalDist: {description: "Mosdepth global dist files."}
+        mosdepthPerBaseBed: {description: "Mosdepth per base bed files."}
+        mosdepthRegionsBed: {description: "Mosdepth region bed files."}
     }
 }
