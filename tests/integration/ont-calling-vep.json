@@ -17,6 +17,5 @@
     "LongReadVariantCalling.minimap2Mapping.memory": "1GiB",
     "LongReadVariantCalling.minimap2Mapping.cores": 1,
     "LongReadVariantCalling.sequaliTask.threads": 1,
-    "LongReadVariantCalling.vepCacheTar": "tests/data/homo_sapiens_vep_113_GRCh38.tar.gz",
-    "LongReadVariantCalling.clair3Vep.dockerImage": "quay.io/biocontainers/ensembl-vep:113.3--pl5321h2a3209d_0"
-  }
+    "LongReadVariantCalling.vepCacheTar": "tests/data/homo_sapiens_vep_113_GRCh38.tar.gz"
+}
