@@ -55,6 +55,10 @@ workflow LongReadVariantCalling {
         Array[Sample] samples
         File referenceFasta 
         File referenceFastaFai
+
+        File? modkitReferenceFasta
+        File? modkitReferenceFastaFai
+
         File? clair3modelTar
         String? clair3builtinmodel
         String clair3platform = "ont"
@@ -208,12 +212,12 @@ workflow LongReadVariantCalling {
 
         if (runModKit) {
             call modkit.Pileup as ModKitPileup {
-                input: 
-                    bam=bam, 
-                    bamIndex=bamIndex, 
+                input:
+                    bam=bam,
+                    bamIndex=bamIndex,
                     outputBed="~{sampleDir}/~{sample.id}.modkit.bed",
-                    referenceFasta=referenceFasta,
-                    referenceFastaFai=referenceFastaFai, 
+                    referenceFasta=select_first([modkitReferenceFasta, referenceFasta]),
+                    referenceFastaFai=select_first([modkitReferenceFastaFai, referenceFastaFai]),
                     logFilePath="~{sampleDir}/~{sample.id}.modkit.log",
             }
         }
