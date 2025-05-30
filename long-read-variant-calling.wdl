@@ -317,7 +317,9 @@ workflow LongReadVariantCalling {
         samples: {description: "The samples with metadata and files.", category: "required"}
         referenceFasta: {description: "The reference FASTA file.", category: "required"}
         referenceFastaFai: {description: "The reference FASTA index file.", category: "required"}
-        
+        modkitReferenceFasta: {description: "The uncompressed reference FASTA file for ModKit that fails with compressed ones.", category: "common"}
+        modkitReferenceFastaFai: {description: "The uncompressed ref FASTA index file.", category: "common"}
+
         clair3modelTar: {description: "TAR file with clair3 model if no builtin model is used", category: "common"}
         clair3builtinmodel: {description: "String describing a builtin model if no TAR file is used.", category: "common"}
         clair3platform: {description: "String describing the clair3 platform", category: "common"}
@@ -351,6 +353,11 @@ workflow LongReadVariantCalling {
 
         bcftoolsStatsClair: {description: "bcftools stats from Clair3 (if run)."}
         bcftoolsStatsDeepvariant: {description: "bcftools stats from DeepVariant (if run)."}
+
+        mosdepthSummary: {description: "Mosdepth summary"}
+        mosdepthGlobalDist: {description: "Mosdepth Global dist"}
+        mosdepthPerBaseBed: {description: "Mosdepth Per-based BED file"}
+        mosdepthRegionsBed: {description: "Mosdepth Regions bed file"}
 
         whatshapPhasedVcfs: {description: "Whatshap phased VCF from clair3 or deepVariant (whichever of the two is available)."}
         whatshapPhasedVcfsIndex: {description: "Whatshap phased VCF index."}
