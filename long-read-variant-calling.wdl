@@ -33,6 +33,7 @@ import "tasks/modkit.wdl" as modkit
 import "tasks/vep.wdl" as vep
 import "tasks/mosdepth.wdl" as mosdepth
 import "tasks/bcftools.wdl" as bcftools
+import "tasks/whatshap.wdl" as whatshap
 
 
 struct SampleDataset {
@@ -74,6 +75,7 @@ workflow LongReadVariantCalling {
         Boolean runClair3 = true 
         Boolean runDeepVariant = false 
         Boolean runModKit = false
+        Boolean phaseBam = false
     }
     
     scatter (sample in samples) {
@@ -210,6 +212,40 @@ workflow LongReadVariantCalling {
             }
         }
 
+        if (phaseBam && (runClair3 || runDeepVariant)) {
+            call whatshap.Phase as whatshapPhase {
+                input:
+                   vcf = select_first([clair3Task.vcf, mergeDeepVariantVCFs.outputVcf]),
+                   vcfIndex = select_first([clair3Task.vcfIndex, mergeDeepVariantVCFs.outputVcfIndex]),
+                   phaseInput = bam,
+                   phaseInputIndex = bamIndex,
+                   indels = true,
+                   reference = select_first([modkitReferenceFasta, referenceFasta]),
+                   referenceIndex = select_first([modkitReferenceFastaFai, referenceFastaFai]),
+                   outputVCF = "~{sampleDir}/~{sample.id}.phased.vcf.gz"
+            }
+
+            call whatshap.Stats as whatshapStats {
+                input:
+                    vcf = whatshapPhase.phasedVCF,
+                    gtf = "~{sampleDir}/~{sample.id}.phased.gtf",
+                    tsv = "~{sampleDir}/~{sample.id}.phased.tsv",
+                    blockList = "~{sampleDir}/~{sample.id}.phased.blocklist"
+            }
+
+            call whatshap.Haplotag as whatshapHaplotag {
+                input:
+                    outputFile = bam + ".haplotagged.bam",
+                    # https://github.com/HKU-BAL/Clair3/issues/276#issuecomment-2461488782
+                    reference = select_first([modkitReferenceFasta, referenceFasta]),
+                    referenceFastaIndex = select_first([modkitReferenceFastaFai, referenceFastaFai]),
+                    vcf = whatshapPhase.phasedVCF,
+                    vcfIndex = whatshapPhase.phasedVCFIndex,
+                    alignments = bam,
+                    alignmentsIndex = bamIndex,
+            }
+        }
+
         if (runModKit) {
             call modkit.Pileup as ModKitPileup {
                 input:
@@ -236,6 +272,7 @@ workflow LongReadVariantCalling {
                 select_all(mosdepthTask.regionsBed),
                 select_all(vcfStatsClair.stats),
                 select_all(vcfStatsDeepvariant.stats),
+                select_all(whatshapStats.phasedTSV),
             ]),
             dataDir = false,
     }
@@ -265,6 +302,14 @@ workflow LongReadVariantCalling {
 
         Array[File] bcftoolsStatsClair = select_all(vcfStatsClair.stats)
         Array[File] bcftoolsStatsDeepvariant = select_all(vcfStatsDeepvariant.stats)
+
+        Array[File] whatshapPhasedVcfs = select_all(whatshapPhase.phasedVCF)
+        Array[File] whatshapPhasedVcfsIndex = select_all(whatshapPhase.phasedVCFIndex)
+        Array[File] whatshapStatsPhasedTSV = select_all(whatshapStats.phasedTSV)
+        Array[File] whatshapStatsPhasedGTF = select_all(whatshapStats.phasedGTF)
+        Array[File] whatshapStatsPhasedBlockList = select_all(whatshapStats.phasedBlockList)
+        Array[File] whatshapHaplotaggedBam = select_all(whatshapHaplotag.bam)
+        Array[File] whatshapHaplotaggedBamIndex = select_all(whatshapHaplotag.bamIndex)
     }
 
     parameter_meta {
@@ -286,6 +331,7 @@ workflow LongReadVariantCalling {
         runModKit: {description: "Whether to run ModKit", category: "common"}
         usePbmm2: {description: "Use pbmm2 instead of minimap2 for mapping.", category: "common"}
         pbmm2Preset: {description: "Pbmm2 preset for mapping reads.", category: "common"}
+        phaseBam: {description: "Whether to phase the BAM file.", category: "common"}
 
         # output
         multiqcReport: {description: "The MultiQC report."}
@@ -305,5 +351,13 @@ workflow LongReadVariantCalling {
 
         bcftoolsStatsClair: {description: "bcftools stats from Clair3 (if run)."}
         bcftoolsStatsDeepvariant: {description: "bcftools stats from DeepVariant (if run)."}
+
+        whatshapPhasedVcfs: {description: "Whatshap phased VCF from clair3 or deepVariant (whichever of the two is available)."}
+        whatshapPhasedVcfsIndex: {description: "Whatshap phased VCF index."}
+        whatshapStatsPhasedTSV: {description: "Whatshap Stats report as TSV"}
+        whatshapStatsPhasedGTF: {description: "Whatshap Stats report as GTF"}
+        whatshapStatsPhasedBlockList: {description: "Whatshap Stats block list"}
+        whatshapHaplotaggedBam: {description: "Whatshap haplotagged BAM File"}
+        whatshapHaplotaggedBamIndex: {description: "Whatshap haplotagged BAM Index"}
     }
 }
