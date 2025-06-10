@@ -16,6 +16,7 @@ version 0.1.0-dev
   + Variant calling with clair3 and/or DeepVariant (clair3 is enabled by 
     default, both are optional.)
   + Methylation analysis with modkit (optional).
+  + Phasing with whatshap (optional)
   + Statistics:
     + Sequali
     + Mosdepth
