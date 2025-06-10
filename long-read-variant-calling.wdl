@@ -235,7 +235,7 @@ workflow LongReadVariantCalling {
 
             call whatshap.Haplotag as whatshapHaplotag {
                 input:
-                    outputFile = bam + ".haplotagged.bam",
+                    outputFile = "~{sampleDir}/~{sample.id}.haplotagged.bam",
                     # https://github.com/HKU-BAL/Clair3/issues/276#issuecomment-2461488782
                     reference = select_first([modkitReferenceFasta, referenceFasta]),
                     referenceFastaIndex = select_first([modkitReferenceFastaFai, referenceFastaFai]),
