@@ -32,6 +32,7 @@ import "tasks/picard.wdl" as picard
 import "tasks/modkit.wdl" as modkit
 import "tasks/vep.wdl" as vep
 import "tasks/mosdepth.wdl" as mosdepth
+import "tasks/bcftools.wdl" as bcftools
 
 
 struct SampleDataset {
