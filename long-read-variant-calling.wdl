@@ -32,6 +32,7 @@ import "tasks/picard.wdl" as picard
 import "tasks/modkit.wdl" as modkit
 import "tasks/vep.wdl" as vep
 import "tasks/mosdepth.wdl" as mosdepth
+import "tasks/bcftools.wdl" as bcftools
 
 
 struct SampleDataset {
@@ -144,6 +145,12 @@ workflow LongReadVariantCalling {
                     sampleName = sample.id,
             }
 
+            call bcftools.Stats as vcfStatsClair { input:
+                inputVcf = clair3Task.vcf,
+                inputVcfIndex = clair3Task.vcfIndex,
+                outputPath = "~{sampleDir}/~{sample.id}.clair3.vcf.stats",
+            }
+
             if (defined(vepCacheTar)) {
                 call vep.Vep as clair3Vep {
                     input: 
@@ -183,6 +190,12 @@ workflow LongReadVariantCalling {
                     outputVcfPath = "~{sampleDir}/~{sample.id}.deepvariant.vcf.gz",
             }
 
+            call bcftools.Stats as vcfStatsDeepvariant { input:
+                inputVcf = mergeDeepVariantVCFs.outputVcf,
+                inputVcfIndex = mergeDeepVariantVCFs.outputVcfIndex,
+                outputPath = "~{sampleDir}/~{sample.id}.deepvariant.vcf.stats",
+            }
+
             if (defined(vepCacheTar)) {
                 call vep.Vep as deepVariantVep {
                     input: 
@@ -217,6 +230,8 @@ workflow LongReadVariantCalling {
                 mosdepthTask.summary,
                 select_all(mosdepthTask.perBaseBed),
                 select_all(mosdepthTask.regionsBed),
+                select_all(vcfStatsClair.stats),
+                select_all(vcfStatsDeepvariant.stats),
             ]),
             dataDir = false,
     }
@@ -243,6 +258,9 @@ workflow LongReadVariantCalling {
         Array[File] mosdepthGlobalDist = mosdepthTask.globalDist
         Array[File] mosdepthPerBaseBed = select_all(mosdepthTask.perBaseBed)
         Array[File] mosdepthRegionsBed = select_all(mosdepthTask.regionsBed)
+
+        Array[File] bcftoolsStatsClair = select_all(vcfStatsClair.stats)
+        Array[File] bcftoolsStatsDeepvariant = select_all(vcfStatsDeepvariant.stats)
     }
 
     parameter_meta {
@@ -280,5 +298,8 @@ workflow LongReadVariantCalling {
         vepAnnotatedFiles: {description: "VCF file annotated by VEP."}
         vepHtmlReports: {description: "The VEP HTML reports."}
         modKitBedGraph: {description: "BedGraph output files for ModKit."}
+
+        bcftoolsStatsClair: {description: "bcftools stats from Clair3 (if run)."}
+        bcftoolsStatsDeepvariant: {description: "bcftools stats from DeepVariant (if run)."}
     }
 }

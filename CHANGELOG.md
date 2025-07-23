@@ -19,4 +19,5 @@ version 0.1.0-dev
   + Statistics:
     + Sequali
     + Mosdepth
+    + bcftools stats (when clair3 or deepvariant are run)
 
